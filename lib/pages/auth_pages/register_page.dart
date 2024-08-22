@@ -1,20 +1,17 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import '../../components/my_button.dart';
 import '../../components/text_field.dart';
-
+import '../../helper/helper_methods.dart';
 
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
 
-
   RegisterPage({super.key, required this.onTap});
-
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
 }
-
 
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController usernameController = TextEditingController();
@@ -22,6 +19,32 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPWController = TextEditingController();
 
+  void register() async {
+    showDialog(
+      context: context,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    if (passwordController.text != confirmPWController.text) {
+      Navigator.pop(context);
+      displayMessageToUser("Passwords don't match", context);
+    } else {
+      try {
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text,
+          password: passwordController.text,
+        );
+        //createUserDocument(userCredential);
+        if (context.mounted) Navigator.pop(context);
+      } on FirebaseAuthException catch (e) {
+        Navigator.pop(context);
+        displayMessageToUser(e.code, context);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +62,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 color: Theme.of(context).colorScheme.inversePrimary,
               ),
 
-
               const SizedBox(height: 40),
-
 
               MyTextField(
                 hintText: "Username",
@@ -49,9 +70,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: usernameController,
               ),
 
-
               const SizedBox(height: 15),
-
 
               //Email field
               MyTextField(
@@ -60,9 +79,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: emailController,
               ),
 
-
               const SizedBox(height: 15),
-
 
               //Password field
               MyTextField(
@@ -71,9 +88,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: passwordController,
               ),
 
-
               const SizedBox(height: 15),
-
 
               //Confirm Password
               MyTextField(
@@ -82,18 +97,14 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: confirmPWController,
               ),
 
-
               const SizedBox(height: 25),
-
 
               MyButton(
                 text: "Register",
-                onTap: (){},
+                onTap: register,
               ),
 
-
               const SizedBox(height: 15),
-
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

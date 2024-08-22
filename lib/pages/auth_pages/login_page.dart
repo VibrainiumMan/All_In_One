@@ -1,8 +1,12 @@
+import 'dart:math';
+
 import 'package:all_in_one/pages/main_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../components/my_button.dart';
 import '../../components/text_field.dart';
+import '../../helper/helper_methods.dart';
 
 class LoginPage extends StatefulWidget {
   final void Function()? onTap;
@@ -17,6 +21,23 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  void login() async {
+    showDialog(
+      context: context,
+      builder: (context) =>
+      const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailController.text, password: passwordController.text);
+      if(context.mounted) Navigator.pop(context);
+    } on FirebaseAuthException catch(e){
+      Navigator.pop(context);
+      displayMessageToUser(e.code, context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,14 +89,7 @@ class _LoginPageState extends State<LoginPage> {
 
               MyButton(
                 text: "Login",
-                onTap: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MainPage(),
-                    ),
-                  );
-                },
+                onTap: login,
               ),
 
               const SizedBox(height: 15),

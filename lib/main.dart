@@ -1,5 +1,4 @@
-import 'package:all_in_one/firebase_options.dart';
-import 'package:all_in_one/pages/auth_pages/login_or_register.dart';
+import 'package:all_in_one/auth/auth.dart';
 import 'package:all_in_one/themes/dark_mode.dart';
 import 'package:all_in_one/themes/light_mode.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -32,7 +31,7 @@ class MyApp extends StatelessWidget {
       title: "All In One",
       theme: lightMode,
       darkTheme: darkMode,
-      home: const LoginOrRegister(),
+      home: const AuthPage(),
     );
   }
 }

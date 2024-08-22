@@ -8,8 +8,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  //await dotenv.load(fileName: ".env");
+  //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  //String apiKey = dotenv.env['API_KEY'] ?? '';
+ await Firebase.initializeApp(
+    options: const FirebaseOptions(
+        apiKey: 'AIzaSyCyJBbJRfbSRuM-vv-yA8KbZpqV1SMjiAQ',
+        appId: '1:611940341499:android:503d93099856136b79025e',
+        messagingSenderId: '611940341499',
+        projectId: 'all-in-one-7f601',
+    ),
+  );
   runApp(const MyApp());
 }
 
@@ -27,5 +36,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-

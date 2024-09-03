@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_picker/file_picker.dart';
-
-// emoji, file and record func waiting to complete
+import 'package:firebase_database/firebase_database.dart';
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key});
@@ -17,7 +16,8 @@ class _MessagesPageState extends State<MessagesPage> {
   final TextEditingController _controller = TextEditingController(); // Text box control
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
   bool _isRecording = false;
-  List<String> messages = []; // store message
+  final databaseRef = FirebaseDatabase.instance.ref();
+  // List<String> messages = []; // store message
 
   @override
   void initState() {
@@ -54,9 +54,16 @@ class _MessagesPageState extends State<MessagesPage> {
   }
 
   void _sendVoiceMessage(String path) {
-    setState(() {
-      messages.add('Voice message sent: $path');
+    var id = databaseRef.child('messages').push().key;
+    databaseRef.child('messages/$id').set({
+      'text': 'Voice message sent',
+      'path': path,
+      'sender': 'User',
+      'timestamp': ServerValue.timestamp,
     });
+    // setState(() {
+    //   messages.add('Voice message sent: $path');
+    // });
   }
 
   void _pickFile() async {
@@ -69,18 +76,35 @@ class _MessagesPageState extends State<MessagesPage> {
   }
 
   void _sendFileMessage(String fileName) {
-    setState(() {
-      messages.add('File sent: $fileName');
+    var id = databaseRef.child('messages').push().key;
+    databaseRef.child('messages/$id').set({
+      'text': 'File sent',
+      'fileName': fileName,
+      'sender': 'User',
+      'timestamp': ServerValue.timestamp,
     });
+    // setState(() {
+    //   messages.add('File sent: $fileName');
+    // });
   }
 
   void _sendMessage() {
-    if (_controller.text.isNotEmpty) {
-      setState(() {
-        messages.add(_controller.text);
-        _controller.clear();
+    final text = _controller.text.trim();
+    if (text.isNotEmpty) {
+      var id = databaseRef.child('messages').push().key;
+      databaseRef.child('messages/$id').set({
+        'text': text,
+        'sender': 'User',
+        'timestamp': ServerValue.timestamp,
       });
+      _controller.clear();
     }
+    // if (_controller.text.isNotEmpty) {
+    //   setState(() {
+    //     messages.add(_controller.text);
+    //     _controller.clear();
+    //   });
+    // }
   }
 
   @override
@@ -88,13 +112,13 @@ class _MessagesPageState extends State<MessagesPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            // return Home page
-            Navigator.pop(context);
-          },
-        ),
+        // leading: IconButton(
+        //   icon: Icon(Icons.arrow_back),
+        //   onPressed: () {
+        //     // return Home page
+        //     Navigator.pop(context);
+        //   },
+        // ),
         title: Text(
           "Messages",
           style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
@@ -111,12 +135,28 @@ class _MessagesPageState extends State<MessagesPage> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder( // message display
-              itemCount: messages.length, // num of message
-              itemBuilder: (context, index) {
-                return ChatBubble(
-                  isSender: true,
-                  message: messages[index], // display text
+            child: StreamBuilder(
+              stream: databaseRef.child('messages').orderByChild('timestamp').onValue,
+              builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                List<Message> messages = [];
+                Map<dynamic, dynamic> data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                data.forEach((key, value) {
+                  var message = Message.fromJson(value);
+                  messages.add(message);
+                });
+                messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+                return ListView.builder(
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    return ChatBubble(
+                      isSender: messages[index].sender == 'User', // Assuming 'User' is the sender ID
+                      message: messages[index].text,
+                    );
+                  },
                 );
               },
             ),
@@ -176,6 +216,22 @@ class ChatBubble extends StatelessWidget {
         ),
         child: Text(message), // display text
       ),
+    );
+  }
+}
+
+class Message {
+  final String text;
+  final String sender;
+  final int timestamp;
+
+  Message({required this.text, required this.sender, required this.timestamp});
+
+  factory Message.fromJson(Map<dynamic, dynamic> json) {
+    return Message(
+      text: json['text'] as String,
+      sender: json['sender'] as String,
+      timestamp: json['timestamp'] as int,
     );
   }
 }

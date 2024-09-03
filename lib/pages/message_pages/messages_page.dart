@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key});
@@ -16,7 +16,6 @@ class _MessagesPageState extends State<MessagesPage> {
   final TextEditingController _controller = TextEditingController(); // Text box control
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
   bool _isRecording = false;
-  final databaseRef = FirebaseDatabase.instance.ref();
   // List<String> messages = []; // store message
 
   @override
@@ -54,12 +53,11 @@ class _MessagesPageState extends State<MessagesPage> {
   }
 
   void _sendVoiceMessage(String path) {
-    var id = databaseRef.child('messages').push().key;
-    databaseRef.child('messages/$id').set({
+    FirebaseFirestore.instance.collection('messages').add({
       'text': 'Voice message sent',
       'path': path,
       'sender': 'User',
-      'timestamp': ServerValue.timestamp,
+      'timestamp': FieldValue.serverTimestamp(),
     });
     // setState(() {
     //   messages.add('Voice message sent: $path');
@@ -76,12 +74,11 @@ class _MessagesPageState extends State<MessagesPage> {
   }
 
   void _sendFileMessage(String fileName) {
-    var id = databaseRef.child('messages').push().key;
-    databaseRef.child('messages/$id').set({
+    FirebaseFirestore.instance.collection('messages').add({
       'text': 'File sent',
       'fileName': fileName,
       'sender': 'User',
-      'timestamp': ServerValue.timestamp,
+      'timestamp': FieldValue.serverTimestamp(),
     });
     // setState(() {
     //   messages.add('File sent: $fileName');
@@ -91,11 +88,10 @@ class _MessagesPageState extends State<MessagesPage> {
   void _sendMessage() {
     final text = _controller.text.trim();
     if (text.isNotEmpty) {
-      var id = databaseRef.child('messages').push().key;
-      databaseRef.child('messages/$id').set({
+      FirebaseFirestore.instance.collection('messages').add({
         'text': text,
         'sender': 'User',
-        'timestamp': ServerValue.timestamp,
+        'timestamp': FieldValue.serverTimestamp(),
       });
       _controller.clear();
     }
@@ -135,25 +131,20 @@ class _MessagesPageState extends State<MessagesPage> {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder(
-              stream: databaseRef.child('messages').orderByChild('timestamp').onValue,
-              builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('messages').orderBy('timestamp').snapshots(),
+              builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return Center(child: CircularProgressIndicator());
                 }
-                List<Message> messages = [];
-                Map<dynamic, dynamic> data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-                data.forEach((key, value) {
-                  var message = Message.fromJson(value);
-                  messages.add(message);
-                });
-                messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+                List<Message> messages = snapshot.data!.docs.map((doc) => Message.fromJson(doc.data() as Map<String, dynamic>)).toList();
+                messages.sort((a, b) => b.timestamp.compareTo(a.timestamp));  // Assuming you want to sort by timestamp descending
 
                 return ListView.builder(
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     return ChatBubble(
-                      isSender: messages[index].sender == 'User', // Assuming 'User' is the sender ID
+                      isSender: messages[index].sender == 'User',  // Assuming 'User' is the current logged in user ID
                       message: messages[index].text,
                     );
                   },
@@ -211,10 +202,20 @@ class ChatBubble extends StatelessWidget {
         padding: EdgeInsets.all(10),
         margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
         decoration: BoxDecoration(
-          color: isSender ? Colors.purple[100] : Colors.grey[200], // color diff on sender and reciver
-          borderRadius: BorderRadius.circular(15),
+          color: isSender ? Colors.blue[100] : Colors.grey[200],
+          borderRadius: isSender
+              ? BorderRadius.only(
+            topLeft: Radius.circular(12),
+            bottomLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          )
+              : BorderRadius.only(
+            topRight: Radius.circular(12),
+            bottomRight: Radius.circular(12),
+            topLeft: Radius.circular(12),
+          ),
         ),
-        child: Text(message), // display text
+        child: Text(message),
       ),
     );
   }
@@ -227,11 +228,11 @@ class Message {
 
   Message({required this.text, required this.sender, required this.timestamp});
 
-  factory Message.fromJson(Map<dynamic, dynamic> json) {
+  factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
-      text: json['text'] as String,
-      sender: json['sender'] as String,
-      timestamp: json['timestamp'] as int,
+      text: json['text'] ?? '',
+      sender: json['sender'] ?? 'Unknown',
+      timestamp: (json['timestamp'] as Timestamp?)?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch,
     );
   }
 }

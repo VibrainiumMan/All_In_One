@@ -1,5 +1,7 @@
 import 'dart:io';
-
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -195,7 +197,7 @@ class _MessagesPageState extends State<MessagesPage> {
                           FirebaseAuth.instance.currentUser?.uid,
                       message: data['text'],
                       senderName:data['senderName'] ?? 'Unknown' ,
-                      senderAvatar:data['SenderAvatar'] ?? '' ,
+                      senderAvatar:data['SenderAvatar'] ?? '', type: '' ,
                     );
                   }).toList(),
                 );
@@ -243,6 +245,8 @@ class ChatBubble extends StatelessWidget {
   final String message;
   final String senderName;
   final String senderAvatar;
+  final String? url; // URL for voice or file
+  final String type; // 'text', 'voice', 'file'
 
   const ChatBubble({
     Key? key,
@@ -250,6 +254,8 @@ class ChatBubble extends StatelessWidget {
     required this.message,
     required this.senderName,
     required this.senderAvatar,
+    this.url,
+    required this.type,
   }) : super(key: key);
 
   @override
@@ -281,19 +287,15 @@ class ChatBubble extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: 4.0),
                         child: Text(
                           senderName,
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.grey[700]),
+                          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                         ),
                       ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSender ? Colors.blue[100] : Colors.grey[300],
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Text(message),
-                    ),
+                    if (type == 'text')
+                      _buildTextMessage(message),
+                    if (type == 'voice')
+                      _buildVoiceMessage(url!, context),
+                    if (type == 'file')
+                      _buildFileMessage(message, url!, context),
                   ],
                 ),
               ),
@@ -310,6 +312,70 @@ class ChatBubble extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildTextMessage(String message) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isSender ? Colors.blue[100] : Colors.grey[300],
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Text(message),
+    );
+  }
+
+  Widget _buildVoiceMessage(String url, BuildContext context) {
+    return InkWell(
+      onTap: () => _playVoiceMessage(url),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.orange[100],
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.play_arrow),
+            Text("Play Voice Message"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFileMessage(String fileName, String url, BuildContext context) {
+    return InkWell(
+      onTap: () => _downloadFile(url),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.green[100],
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.file_download),
+            Text("Download $fileName"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _playVoiceMessage(String url) async {
+    AudioPlayer audioPlayer = AudioPlayer();
+    await audioPlayer.play(UrlSource(url));
+  }
+
+  void _downloadFile(String url) async {
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      print('Could not launch $url');
+    }
   }
 }
 

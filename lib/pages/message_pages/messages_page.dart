@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -56,22 +59,33 @@ class _MessagesPageState extends State<MessagesPage> {
   void _sendVoiceMessage(String path) async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      String fileName = path.split('/').last;
+      // Create file ref of firebase storage
+      Reference storageRef = FirebaseStorage.instance.ref().child('voiceMessages/$fileName');
+      // Upload file
+      UploadTask uploadTask = storageRef.putFile(File(path));
 
-      String userName = userSnapshot.get('name');
-      String userAvatar = userSnapshot.get('avatar');
+      try {
+        // Waiting upload finished and get download link
+        final snapshot = await uploadTask;
+        final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      FirebaseFirestore.instance.collection('messages').add({
-        'text': 'Voice message sent',
-        'path': path,
-        'sender': user.uid,
-        'senderName': userName,
-        'senderAvatar': userAvatar,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        String userName = userSnapshot.get('name');
+        String userAvatar = userSnapshot.get('avatar');
+
+        // Update to firestore
+        FirebaseFirestore.instance.collection('messages').add({
+          'type': 'voice',
+          'url': downloadUrl,
+          'sender': user.uid,
+          'senderName': userName,
+          'senderAvatar': userAvatar,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      } catch (e) {
+        print('Error uploading voice message: $e');
+      }
     }
   }
 
@@ -84,25 +98,35 @@ class _MessagesPageState extends State<MessagesPage> {
     }
   }
 
-  void _sendFileMessage(String fileName) async {
+  void _sendFileMessage(String filePath) async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      String fileName = filePath.split('/').last;
+      // Create file ref of firebase storage
+      Reference storageRef = FirebaseStorage.instance.ref().child('uploadedFiles/$fileName');
+      // Upload file
+      UploadTask uploadTask = storageRef.putFile(File(filePath));
 
-      String userName = userSnapshot.get('name');
-      String userAvatar = userSnapshot.get('avatar');
+      try {
+        final snapshot = await uploadTask;
+        final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      FirebaseFirestore.instance.collection('messages').add({
-        'text': 'File sent',
-        'fileName': fileName,
-        'sender': user.uid,
-        'senderName': userName,
-        'senderAvatar': userAvatar,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        String userName = userSnapshot.get('name');
+        String userAvatar = userSnapshot.get('avatar');
+
+        FirebaseFirestore.instance.collection('messages').add({
+          'type': 'file',
+          'url': downloadUrl,
+          'fileName': fileName,
+          'sender': user.uid,
+          'senderName': userName,
+          'senderAvatar': userAvatar,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      } catch (e) {
+        print('Error uploading file message: $e');
+      }
     }
   }
 
@@ -110,6 +134,7 @@ class _MessagesPageState extends State<MessagesPage> {
     final text = _controller.text.trim();
     final User? user = FirebaseAuth.instance.currentUser;
     if (text.isNotEmpty && user != null) {
+      // Waiting upload finished and get download link
       DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -118,6 +143,7 @@ class _MessagesPageState extends State<MessagesPage> {
       String userName = userSnapshot.get('name');
       String userAvatar = userSnapshot.get('avatar');
 
+      // Update to firestore
       FirebaseFirestore.instance.collection('messages').add({
         'text': text,
         'sender': user.uid,

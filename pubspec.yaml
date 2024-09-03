@@ -38,14 +38,6 @@ dependencies:
   firebase_core: ^3.3.0
   firebase_auth: ^5.1.4
   flutter_dotenv: ^5.1.0
-  flutter_sound: ^9.11.2 # record function
-  permission_handler: ^11.3.1
-  file_picker: ^8.0.7
-  firebase_database: ^11.1.0
-  cloud_firestore: ^5.3.0
-  firebase_storage: ^12.2.0
-  audioplayers: ^6.1.0
-  url_launcher: ^6.3.0
   cloud_firestore: ^5.1.0
 
 dev_dependencies:

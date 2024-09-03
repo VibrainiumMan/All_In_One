@@ -54,13 +54,23 @@ class _MessagesPageState extends State<MessagesPage> {
     }
   }
 
-  void _sendVoiceMessage(String path) {
+  void _sendVoiceMessage(String path) async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      String userName = userSnapshot.get('name');
+      String userAvatar = userSnapshot.get('avatar');
+
       FirebaseFirestore.instance.collection('messages').add({
         'text': 'Voice message sent',
         'path': path,
         'sender': user.uid,
+        'senderName': userName,
+        'senderAvatar': userAvatar,
         'timestamp': FieldValue.serverTimestamp(),
       });
     }
@@ -75,27 +85,48 @@ class _MessagesPageState extends State<MessagesPage> {
     }
   }
 
-  void _sendFileMessage(String fileName) {
+  void _sendFileMessage(String fileName) async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      String userName = userSnapshot.get('name');
+      String userAvatar = userSnapshot.get('avatar');
+
       FirebaseFirestore.instance.collection('messages').add({
         'text': 'File sent',
         'fileName': fileName,
         'sender': user.uid,
+        'senderName': userName,
+        'senderAvatar': userAvatar,
         'timestamp': FieldValue.serverTimestamp(),
       });
     }
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     final text = _controller.text.trim();
     final User? user = FirebaseAuth.instance.currentUser;
     if (text.isNotEmpty && user != null) {
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      String userName = userSnapshot.get('name');
+      String userAvatar = userSnapshot.get('avatar');
+
       FirebaseFirestore.instance.collection('messages').add({
         'text': text,
         'sender': user.uid,
+        'senderName': userName,
+        'senderAvatar': userAvatar,
         'timestamp': FieldValue.serverTimestamp(),
       });
+
       _controller.clear();
     }
   }
@@ -140,6 +171,8 @@ class _MessagesPageState extends State<MessagesPage> {
                       isSender: data['sender'] ==
                           FirebaseAuth.instance.currentUser?.uid,
                       message: data['text'],
+                      senderName:data['senderName'] ?? 'Unknown' ,
+                      senderAvatar:data['SenderAvatar'] ?? '' ,
                     );
                   }).toList(),
                 );
@@ -185,49 +218,65 @@ class _MessagesPageState extends State<MessagesPage> {
 class ChatBubble extends StatelessWidget {
   final bool isSender;
   final String message;
+  final String senderName;
+  final String senderAvatar;
 
-  ChatBubble({required this.isSender, required this.message});
+  const ChatBubble({
+    Key? key,
+    required this.isSender,
+    required this.message,
+    required this.senderName,
+    required this.senderAvatar,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: isSender ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-        decoration: BoxDecoration(
-          color: isSender ? Colors.blue[100] : Colors.grey[200],
-          borderRadius: isSender
-              ? BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                )
-              : BorderRadius.only(
-                  topRight: Radius.circular(12),
-                  topLeft: Radius.circular(12),
-                  bottomRight: Radius.circular(12),
-                ),
+    return Row(
+      mainAxisAlignment: isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: [
+        if (!isSender) CircleAvatar(backgroundImage: NetworkImage(senderAvatar)),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(senderName, style: TextStyle(fontWeight: FontWeight.bold)),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              margin: EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: isSender ? Colors.blue[100] : Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(message),
+            ),
+          ],
         ),
-        child: Text(message),
-      ),
+      ],
     );
   }
 }
 
 class Message {
   final String text;
-  final String sender;
-  final int timestamp;
+  final String senderId;
+  final String senderName;
+  final String senderAvatar;
+  final DateTime timestamp;
 
-  Message({required this.text, required this.sender, required this.timestamp});
+  Message({
+    required this.text,
+    required this.senderId,
+    required this.senderName,
+    required this.senderAvatar,
+    required this.timestamp,
+  });
 
-  factory Message.fromJson(Map<String, dynamic> json) {
+  factory Message.fromJson(Map<String, dynamic> data) {
     return Message(
-      text: json['text'] ?? '',
-      sender: json['sender'] ?? 'Unknown',
-      timestamp: (json['timestamp'] as Timestamp?)?.millisecondsSinceEpoch ??
-          DateTime.now().millisecondsSinceEpoch,
+      text: data['text'] ?? '',
+      senderId: data['senderId'] ?? '',
+      senderName: data['senderName'] ?? '',
+      senderAvatar: data['senderAvatar'] ?? '',
+      timestamp: DateTime.fromMillisecondsSinceEpoch(data['timestamp']),
     );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:all_in_one/pages/main_pages/home_page.dart';
-import 'package:all_in_one/pages/main_pages/messages_page.dart';
+import 'package:all_in_one/pages/message_pages/messages_page.dart';
 import 'package:all_in_one/pages/main_pages/posting_page.dart';
 import 'package:all_in_one/pages/main_pages/profile_page.dart';
 import 'package:all_in_one/pages/main_pages/task_page.dart';

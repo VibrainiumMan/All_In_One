@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:file_picker/file_picker.dart';
 
 // emoji, file and record func waiting to complete
 
@@ -11,9 +14,65 @@ class MessagesPage extends StatefulWidget {
 
 class _MessagesPageState extends State<MessagesPage> {
   final TextEditingController _controller = TextEditingController(); // Text box control
+  final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  bool _isRecording = false;
   List<String> messages = []; // store message
 
-  // Method of send message
+  @override
+  void initState() {
+    super.initState();
+    _initRecorder();
+  }
+
+  @override
+  void dispose() {
+    _recorder.closeRecorder();
+    super.dispose();
+  }
+
+  Future<void> _initRecorder() async {
+    await Permission.microphone.request();
+    await _recorder.openRecorder();
+  }
+
+  void _startRecording() async {
+    await _recorder.startRecorder(toFile: 'voice_message.mp4');
+    setState(() {
+      _isRecording = true;
+    });
+  }
+
+  void _stopRecording() async {
+    final path = await _recorder.stopRecorder();
+    setState(() {
+      _isRecording = false;
+    });
+    if (path != null) {
+      _sendVoiceMessage(path);
+    }
+  }
+
+  void _sendVoiceMessage(String path) {
+    setState(() {
+      messages.add('Voice message sent: $path');
+    });
+  }
+
+  void _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      PlatformFile file = result.files.first;
+      _sendFileMessage(file.name);
+    }
+  }
+
+  void _sendFileMessage(String fileName) {
+    setState(() {
+      messages.add('File sent: $fileName');
+    });
+  }
+
   void _sendMessage() {
     if (_controller.text.isNotEmpty) {
       setState(() {
@@ -67,9 +126,7 @@ class _MessagesPageState extends State<MessagesPage> {
               children: [
                 IconButton(
                   icon: Icon(Icons.attach_file),
-                  onPressed: () {
-                    // file button
-                  },
+                  onPressed: _pickFile,
                 ),
                 Expanded(
                   child: TextField(
@@ -83,16 +140,8 @@ class _MessagesPageState extends State<MessagesPage> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.emoji_emotions),
-                  onPressed: () {
-                    // emoji button
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.mic),
-                  onPressed: () {
-                    // record button
-                  },
+                  icon: Icon(_isRecording ? Icons.stop : Icons.mic),
+                  onPressed: _isRecording ? _stopRecording : _startRecording,
                 ),
                 IconButton(
                   icon: Icon(Icons.send),

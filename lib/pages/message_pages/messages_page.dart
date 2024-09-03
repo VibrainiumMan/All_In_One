@@ -1,4 +1,3 @@
-import 'package:all_in_one/pages/message_pages/group_chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -143,8 +142,6 @@ class _MessagesPageState extends State<MessagesPage> {
           IconButton(
             icon: Icon(Icons.group),
             onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => GroupChatPage()));
             },
           ),
         ],

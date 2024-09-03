@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../components/my_button.dart';
@@ -38,20 +37,6 @@ class _RegisterPageState extends State<RegisterPage> {
           email: emailController.text,
           password: passwordController.text,
         );
-        // Update userName and UserAvatar
-        if (userCredential.user != null) {
-          String uid = userCredential.user!.uid;
-          String userName = usernameController.text.trim();
-          String avatarUrl = "";
-
-          await FirebaseFirestore.instance.collection('users').doc(uid).set({
-            'name': userName,
-            'avatar': avatarUrl,
-            'email': emailController.text.trim(),
-            'uid': uid,
-          });
-        }
-
         //createUserDocument(userCredential);
         if (context.mounted) Navigator.pop(context);
       } on FirebaseAuthException catch (e) {

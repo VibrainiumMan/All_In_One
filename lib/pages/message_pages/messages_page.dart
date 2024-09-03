@@ -162,7 +162,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   return Center(child: CircularProgressIndicator());
                 }
                 return ListView(
-                  reverse: true,
+                  reverse: false,
                   children:
                       snapshot.data!.docs.map((DocumentSnapshot document) {
                     Map<String, dynamic> data =
@@ -231,26 +231,61 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
-      children: [
-        if (!isSender) CircleAvatar(backgroundImage: NetworkImage(senderAvatar)),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(senderName, style: TextStyle(fontWeight: FontWeight.bold)),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              margin: EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: isSender ? Colors.blue[100] : Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
+      child: Column(
+        crossAxisAlignment:
+        isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment:
+            isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
+            children: [
+              if (!isSender)
+                CircleAvatar(
+                  backgroundImage: senderAvatar.isNotEmpty
+                      ? NetworkImage(senderAvatar)
+                      : null,
+                  child: senderAvatar.isEmpty ? Icon(Icons.person) : null,
+                ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!isSender)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: Text(
+                          senderName,
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey[700]),
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSender ? Colors.blue[100] : Colors.grey[300],
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Text(message),
+                    ),
+                  ],
+                ),
               ),
-              child: Text(message),
-            ),
-          ],
-        ),
-      ],
+              const SizedBox(width: 8),
+              if (isSender)
+                CircleAvatar(
+                  backgroundImage: senderAvatar.isNotEmpty
+                      ? NetworkImage(senderAvatar)
+                      : null,
+                  child: senderAvatar.isEmpty ? Icon(Icons.person) : null,
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -9,7 +9,7 @@ class Task {
   final String? date;
   final String description;
   final List<String>? days;
-  final bool isCompleted;
+  bool isCompleted;
 
   Task({
     required this.title,
@@ -44,7 +44,6 @@ class _TaskPageState extends State<TaskPage> {
   List<Task> dailyTasks = [];
   List<Task> weeklyTasks = [];
   List<Task> monthlyTasks = [];
-  List<bool> taskCompletion = [];
 
   @override
   void initState() {
@@ -67,7 +66,6 @@ class _TaskPageState extends State<TaskPage> {
           dailyTasks.clear();
           weeklyTasks.clear();
           monthlyTasks.clear();
-          taskCompletion.clear();
 
           for (var doc in snapshot.docs) {
             var task = Task.fromFirestore(doc);
@@ -79,7 +77,6 @@ class _TaskPageState extends State<TaskPage> {
             } else if (task.type == 'Monthly') {
               monthlyTasks.add(task);
             }
-            taskCompletion.add(task.isCompleted); // 체크 상태 초기화
           }
         });
       });
@@ -95,7 +92,6 @@ class _TaskPageState extends State<TaskPage> {
       } else if (task.type == 'Monthly') {
         monthlyTasks.add(task);
       }
-      taskCompletion.add(task.isCompleted);
     });
   }
 
@@ -117,7 +113,6 @@ class _TaskPageState extends State<TaskPage> {
       } else if (task.type == 'Monthly') {
         monthlyTasks.remove(task);
       }
-      taskCompletion.removeAt(dailyTasks.indexOf(task));
     });
   }
 
@@ -221,16 +216,14 @@ class _TaskPageState extends State<TaskPage> {
             width: 400,
             child: tasks.isNotEmpty
                 ? Column(
-              children: tasks.asMap().entries.map((entry) {
-                int index = entry.key;
-                Task task = entry.value;
+              children: tasks.map((task) {
                 return ListTile(
                   leading: Checkbox(
-                    value: taskCompletion[index],
+                    value: task.isCompleted,
                     onChanged: (bool? value) {
                       setState(() {
-                        taskCompletion[index] = value!;
-                        _updateTaskCompletion(task, value); // Firestore에 상태 저장
+                        task.isCompleted = value!;
+                        _updateTaskCompletion(task, value);
                       });
                     },
                   ),

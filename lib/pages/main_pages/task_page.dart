@@ -8,12 +8,16 @@ class Task {
   final String type;
   final String? date;
   final String description;
+  final List<String>? days;
+  final bool isCompleted;
 
   Task({
     required this.title,
     required this.type,
     this.date,
     required this.description,
+    this.days,
+    this.isCompleted = false,
   });
 
   factory Task.fromFirestore(DocumentSnapshot doc) {
@@ -23,6 +27,8 @@ class Task {
       type: data['type'],
       date: data['date'],
       description: data['description'],
+      days: List<String>.from(data['days'] ?? []),
+      isCompleted: data['isCompleted'] ?? false,
     );
   }
 }
@@ -38,6 +44,7 @@ class _TaskPageState extends State<TaskPage> {
   List<Task> dailyTasks = [];
   List<Task> weeklyTasks = [];
   List<Task> monthlyTasks = [];
+  List<bool> taskCompletion = [];
 
   @override
   void initState() {
@@ -45,7 +52,6 @@ class _TaskPageState extends State<TaskPage> {
     _loadTasks();
   }
 
-  // request login user's data from firebase
   void _loadTasks() async {
     final user = FirebaseAuth.instance.currentUser;
 
@@ -61,6 +67,7 @@ class _TaskPageState extends State<TaskPage> {
           dailyTasks.clear();
           weeklyTasks.clear();
           monthlyTasks.clear();
+          taskCompletion.clear();
 
           for (var doc in snapshot.docs) {
             var task = Task.fromFirestore(doc);
@@ -72,13 +79,13 @@ class _TaskPageState extends State<TaskPage> {
             } else if (task.type == 'Monthly') {
               monthlyTasks.add(task);
             }
+            taskCompletion.add(task.isCompleted); // 체크 상태 초기화
           }
         });
       });
     }
   }
 
-  // Add Task
   void _addTask(Task task) {
     setState(() {
       if (task.type == 'Daily') {
@@ -88,10 +95,44 @@ class _TaskPageState extends State<TaskPage> {
       } else if (task.type == 'Monthly') {
         monthlyTasks.add(task);
       }
+      taskCompletion.add(task.isCompleted);
     });
   }
 
-  // Dialog that shows details of the task
+  void _deleteTask(Task task) {
+    FirebaseFirestore.instance
+        .collection('tasks')
+        .where('title', isEqualTo: task.title)
+        .get()
+        .then((snapshot) {
+      for (var doc in snapshot.docs) {
+        doc.reference.delete();
+      }
+    });
+    setState(() {
+      if (task.type == 'Daily') {
+        dailyTasks.remove(task);
+      } else if (task.type == 'Weekly') {
+        weeklyTasks.remove(task);
+      } else if (task.type == 'Monthly') {
+        monthlyTasks.remove(task);
+      }
+      taskCompletion.removeAt(dailyTasks.indexOf(task));
+    });
+  }
+
+  void _updateTaskCompletion(Task task, bool isCompleted) {
+    FirebaseFirestore.instance
+        .collection('tasks')
+        .where('title', isEqualTo: task.title)
+        .get()
+        .then((snapshot) {
+      for (var doc in snapshot.docs) {
+        doc.reference.update({'isCompleted': isCompleted});
+      }
+    });
+  }
+
   void _showTaskDetails(BuildContext context, Task task) {
     showDialog(
       context: context,
@@ -101,7 +142,9 @@ class _TaskPageState extends State<TaskPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Date: ${task.date ?? 'No date selected'}"),
+              Text(task.type == 'Weekly'
+                  ? "Days: ${task.days?.join(', ') ?? 'No days selected'}"
+                  : "Date: ${task.date ?? 'No date selected'}"),
               SizedBox(height: 10),
               Text("Description: ${task.description}"),
             ],
@@ -151,13 +194,8 @@ class _TaskPageState extends State<TaskPage> {
       ),
       body: ListView(
         children: [
-          // Daily Tasks Section
           _buildTaskSection("Daily Task", dailyTasks),
-
-          // Weekly Tasks Section
           _buildTaskSection("Weekly Task", weeklyTasks),
-
-          // Monthly Tasks Section
           _buildTaskSection("Monthly Task", monthlyTasks),
         ],
       ),
@@ -183,9 +221,26 @@ class _TaskPageState extends State<TaskPage> {
             width: 400,
             child: tasks.isNotEmpty
                 ? Column(
-              children: tasks.map((task) {
+              children: tasks.asMap().entries.map((entry) {
+                int index = entry.key;
+                Task task = entry.value;
                 return ListTile(
+                  leading: Checkbox(
+                    value: taskCompletion[index],
+                    onChanged: (bool? value) {
+                      setState(() {
+                        taskCompletion[index] = value!;
+                        _updateTaskCompletion(task, value); // Firestore에 상태 저장
+                      });
+                    },
+                  ),
                   title: Text(task.title),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete, color: Colors.black),
+                    onPressed: () {
+                      _deleteTask(task);
+                    },
+                  ),
                   onTap: () {
                     _showTaskDetails(context, task);
                   },

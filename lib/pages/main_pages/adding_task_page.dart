@@ -5,12 +5,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 class Task {
   final String title;
   final String type;
+  final List<String>? days;
   final String? date;
   final String description;
 
   Task({
     required this.title,
     required this.type,
+    this.days,
     this.date,
     required this.description,
   });
@@ -19,6 +21,7 @@ class Task {
     return {
       'title': title,
       'type': type,
+      'days': days,
       'date': date,
       'description': description,
       'owner': ownerEmail,
@@ -36,8 +39,10 @@ class AddingTaskPage extends StatefulWidget {
 class _AddingTaskPageState extends State<AddingTaskPage> {
   final TextEditingController taskController1 = TextEditingController();
   final TextEditingController taskController4 = TextEditingController();
-  String selectedType = 'Daily';
+  String selectedType = '';
   DateTime? selectedDate;
+  List<String> selectedDays = [];
+  bool isDateEnabled = false;
 
   @override
   void dispose() {
@@ -47,6 +52,8 @@ class _AddingTaskPageState extends State<AddingTaskPage> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    if (!isDateEnabled) return;
+
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -66,12 +73,21 @@ class _AddingTaskPageState extends State<AddingTaskPage> {
     if (user != null) {
       String title = taskController1.text;
       String type = selectedType;
-      String? date = selectedDate != null ? selectedDate!.toLocal().toString().split(' ')[0] : null;
+      String? date;
+      List<String>? days;
+
+      if (selectedType == 'Weekly') {
+        days = selectedDays;
+      } else if (selectedType == 'Monthly' && selectedDate != null) {
+        date = selectedDate!.toLocal().toString().split(' ')[0];
+      }
+
       String description = taskController4.text;
 
       Task newTask = Task(
         title: title,
         type: type,
+        days: days,
         date: date,
         description: description,
       );
@@ -107,7 +123,7 @@ class _AddingTaskPageState extends State<AddingTaskPage> {
             Container(
               padding: EdgeInsets.all(10),
               child: DropdownButtonFormField<String>(
-                value: selectedType,
+                value: selectedType.isEmpty ? null : selectedType,
                 decoration: InputDecoration(labelText: "Choose Type"),
                 items: <String>['Daily', 'Weekly', 'Monthly'].map((String value) {
                   return DropdownMenuItem<String>(
@@ -118,28 +134,58 @@ class _AddingTaskPageState extends State<AddingTaskPage> {
                 onChanged: (newValue) {
                   setState(() {
                     selectedType = newValue!;
+                    isDateEnabled = selectedType == 'Monthly';
+                    selectedDays.clear();
                   });
                 },
               ),
             ),
 
-            // Choose Date
-            Container(
-              padding: EdgeInsets.all(10),
-              child: InkWell(
-                onTap: () => _selectDate(context),
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: 'Select Date',
-                  ),
-                  child: Text(
-                    selectedDate != null
-                        ? "${selectedDate!.toLocal()}".split(' ')[0]
-                        : 'No Date Chosen',
+            // Weekly Task: Select multiple days
+            if (selectedType == 'Weekly')
+              Container(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Select Days"),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 4.0,
+                      children: [
+                        _buildDayCheckbox("Mon"),
+                        _buildDayCheckbox("Tue"),
+                        _buildDayCheckbox("Wed"),
+                        _buildDayCheckbox("Thu"),
+                        _buildDayCheckbox("Fri"),
+                        _buildDayCheckbox("Sat"),
+                        _buildDayCheckbox("Sun"),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+            // Choose Date (for Monthly task)
+            if (selectedType == 'Monthly')
+              Container(
+                padding: EdgeInsets.all(10),
+                child: InkWell(
+                  onTap: () => _selectDate(context),
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'Select Date',
+                    ),
+                    child: Text(
+                      selectedDate != null
+                          ? "${selectedDate!.toLocal()}".split(' ')[0]
+                          : 'No Date Chosen',
+                    ),
                   ),
                 ),
               ),
-            ),
+
+            SizedBox(height: 20),
 
             // Write Description
             Container(
@@ -160,6 +206,27 @@ class _AddingTaskPageState extends State<AddingTaskPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDayCheckbox(String day) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Checkbox(
+          value: selectedDays.contains(day),
+          onChanged: (bool? value) {
+            setState(() {
+              if (value == true) {
+                selectedDays.add(day);
+              } else {
+                selectedDays.remove(day);
+              }
+            });
+          },
+        ),
+        Text(day),
+      ],
     );
   }
 }

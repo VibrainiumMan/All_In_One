@@ -59,7 +59,6 @@ class _PostingPageState extends State<PostingPage> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      // 댓글 수 증가
       await FirebaseFirestore.instance.collection('posts').doc(postId).update({
         'commentCount': FieldValue.increment(1),
       });

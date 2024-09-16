@@ -1,3 +1,5 @@
+import 'package:all_in_one/components/my_button.dart';
+import 'package:all_in_one/pages/auth_pages/flash_card_manager_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -55,7 +57,8 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         dailyProgress = dailyTotal > 0 ? dailyCompleted / dailyTotal : 0;
         weeklyProgress = weeklyTotal > 0 ? weeklyCompleted / weeklyTotal : 0;
-        monthlyProgress = monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
+        monthlyProgress =
+            monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
       });
     }
   }
@@ -70,17 +73,19 @@ class _HomePageState extends State<HomePage> {
           style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
         ),
       ),
-      body: Container(
+      body: SizedBox(
         width: MediaQuery.of(context).size.width,
         child: ListView(
           children: [
             // ToDo List Progress Section
             Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Theme.of(context).colorScheme.inversePrimary),
+                border: Border.all(
+                    color: Theme.of(context).colorScheme.inversePrimary),
               ),
-              margin: EdgeInsets.all(10),
-              width: 400, height: 150,
+              margin: const EdgeInsets.all(10),
+              width: 400,
+              height: 150,
               child: Center(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -95,25 +100,43 @@ class _HomePageState extends State<HomePage> {
             // Add Schedule Section
             Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Theme.of(context).colorScheme.inversePrimary),
+                border: Border.all(
+                    color: Theme.of(context).colorScheme.inversePrimary),
               ),
-              margin: EdgeInsets.all(10),
-              width: 400, height: 200,
-              child: Center(
+              margin: const EdgeInsets.all(10),
+              width: 400,
+              height: 200,
+              child: const Center(
                 child: Text("Add Schedule"),
               ),
             ),
             // Add Calendar Section
             Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Theme.of(context).colorScheme.inversePrimary),
+                border: Border.all(
+                    color: Theme.of(context).colorScheme.inversePrimary),
               ),
-              margin: EdgeInsets.all(10),
-              width: 400, height: 200,
-              child: Center(
+              margin: const EdgeInsets.all(10),
+              width: 400,
+              height: 200,
+              child: const Center(
                 child: Text("Add Calendar"),
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: MyButton(
+                text: "Flash Card",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FlashCardManagerPage(),
+                    ),
+                  );
+                },
+              ),
+            )
           ],
         ),
       ),
@@ -141,10 +164,9 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Text(type),
       ],
     );
   }
-
 }

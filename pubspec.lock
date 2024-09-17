@@ -354,26 +354,26 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_sound
-      sha256: "8987ddb736c701d08afaff46552a4f8065cf6745f7f0473307ec8c2c1b8682d5"
+      sha256: "97a51ca3f359b4ef695720dc52ab83fe862f9390c05b1c3ae95676e675765930"
       url: "https://pub.dev"
     source: hosted
-    version: "9.12.44"
+    version: "9.15.61"
   flutter_sound_platform_interface:
     dependency: transitive
     description:
       name: flutter_sound_platform_interface
-      sha256: "54d7b3fafb4763df94447a1a37c2f53623208c1b35d774f2f15c5edf26bfdad3"
+      sha256: "82bf39c440f608c45a42e80ee3c79f0934999d824a6464646da4a9f948778769"
       url: "https://pub.dev"
     source: hosted
-    version: "9.12.44"
+    version: "9.15.61"
   flutter_sound_web:
     dependency: transitive
     description:
       name: flutter_sound_web
-      sha256: c922877ee5a0698db120432c4ccfbd2f4b6c7581bae4cd6fffb6111a211673e4
+      sha256: "3652fd0272db733fac49fe9958a7c4247945040db32c5285fbbdb2f3cfc98b32"
       url: "https://pub.dev"
     source: hosted
-    version: "9.12.44"
+    version: "9.15.61"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -385,13 +385,13 @@ packages:
     source: sdk
     version: "0.0.0"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
-      sha256: b9c29a161230ee03d3ccf545097fccd9b87a5264228c5d348202e0f0c28f9010
+      sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.2"
+    version: "0.13.6"
   http_parser:
     dependency: transitive
     description:
@@ -849,10 +849,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: f652077d0bdf60abe4c1f6377448e8655008eef28f128bc023f7b5e8dfeb48fc
+      sha256: "5c5f338a667b4c644744b661f309fb8080bb94b18a7e91ef1dbd343bed00ed6d"
       url: "https://pub.dev"
     source: hosted
-    version: "14.2.4"
+    version: "14.2.5"
   web:
     dependency: transitive
     description:

@@ -1,3 +1,4 @@
+import 'package:all_in_one/pages/main_pages/daily_motivation_page.dart';
 import 'package:all_in_one/pages/main_pages/home_page.dart';
 import 'package:all_in_one/pages/main_pages/messages_page.dart';
 import 'package:all_in_one/pages/main_pages/posting_page.dart';
@@ -20,6 +21,7 @@ class _MainPageState extends State<MainPage> {
     const HomePage(),
     const TaskPage(),
     const ProfilePage(),
+    const DailyMotivationPage(),
   ];
 
   @override
@@ -58,6 +60,10 @@ class _MainPageState extends State<MainPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
+            label: '',
+          ),
+          BottomNavigationBarItem( // Add the new item for Daily Motivation
+            icon: Icon(Icons.format_quote),
             label: '',
           ),
         ],

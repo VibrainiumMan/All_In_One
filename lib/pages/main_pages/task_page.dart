@@ -203,7 +203,7 @@ class _TaskPageState extends State<TaskPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            margin: EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
             child: Text(title),
           ),
           Container(
@@ -212,7 +212,7 @@ class _TaskPageState extends State<TaskPage> {
                 color: Theme.of(context).colorScheme.inversePrimary,
               ),
             ),
-            margin: EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
             width: 400,
             child: tasks.isNotEmpty
                 ? Column(
@@ -229,7 +229,7 @@ class _TaskPageState extends State<TaskPage> {
                   ),
                   title: Text(task.title),
                   trailing: IconButton(
-                    icon: Icon(Icons.delete, color: Colors.black),
+                    icon: const Icon(Icons.delete, color: Colors.black),
                     onPressed: () {
                       _deleteTask(task);
                     },
@@ -240,7 +240,7 @@ class _TaskPageState extends State<TaskPage> {
                 );
               }).toList(),
             )
-                : Center(
+                : const Center(
               child: Text("There is no task now T^T"),
             ),
           ),

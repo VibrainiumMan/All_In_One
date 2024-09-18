@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'FriendsPage.dart';
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key});
@@ -15,8 +16,7 @@ class MessagesPage extends StatefulWidget {
 }
 
 class _MessagesPageState extends State<MessagesPage> {
-  final TextEditingController _controller =
-  TextEditingController(); // Text box control
+  final TextEditingController _controller = TextEditingController(); // Text box control
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
   bool _isRecording = false;
   String? userID = FirebaseAuth.instance.currentUser?.uid;
@@ -81,6 +81,7 @@ class _MessagesPageState extends State<MessagesPage> {
           'senderName': userName,
           'senderAvatar': userAvatar,
           'timestamp': FieldValue.serverTimestamp(),
+          'isPrivate': false,
         });
       } catch (e) {
         print('Error uploading voice message: $e');
@@ -122,6 +123,7 @@ class _MessagesPageState extends State<MessagesPage> {
           'senderName': userName,
           'senderAvatar': userAvatar,
           'timestamp': FieldValue.serverTimestamp(),
+          'isPrivate': false,
         });
       } catch (e) {
         print('Error uploading file message: $e');
@@ -149,6 +151,7 @@ class _MessagesPageState extends State<MessagesPage> {
         'senderName': userName,
         'senderAvatar': userAvatar,
         'timestamp': FieldValue.serverTimestamp(),
+        'isPrivate': false,
       });
 
       _controller.clear();
@@ -167,6 +170,10 @@ class _MessagesPageState extends State<MessagesPage> {
           IconButton(
             icon: Icon(Icons.group),
             onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FriendsPage()),
+              );
             },
           ),
         ],
@@ -177,27 +184,35 @@ class _MessagesPageState extends State<MessagesPage> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('messages')
+                  .where('isPrivate', isEqualTo: false)
                   .orderBy('timestamp')
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator()); // 加载时显示进度指示器
                 }
-                return ListView(
-                  reverse: false,
-                  children:
-                  snapshot.data!.docs.map((DocumentSnapshot document) {
-                    Map<String, dynamic> data =
-                    document.data()! as Map<String, dynamic>;
-                    return ChatBubble(
-                      isSender: data['sender'] ==
-                          FirebaseAuth.instance.currentUser?.uid,
-                      message: data['text'],
-                      senderName:data['senderName'] ?? 'Unknown' ,
-                      senderAvatar:data['SenderAvatar'] ?? '' ,
-                    );
-                  }).toList(),
-                );
+                if (snapshot.hasError) {
+                  return Text("Error: ${snapshot.error}"); // 如果有错误，显示错误信息
+                }
+                if (snapshot.hasData) {
+                  if (snapshot.data!.docs.isEmpty) {
+                    return Center(child: Text("No messages")); // 如果没有数据，显示没有消息的文本
+                  }
+                  return ListView(
+                    reverse: false,
+                    children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                      Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+                      return ChatBubble(
+                        isSender: data['sender'] == FirebaseAuth.instance.currentUser?.uid,
+                        message: data['text'],
+                        senderName: data['senderName'] ?? 'Unknown', // 如果没有名称，显示 "Unknown"
+                        senderAvatar: data['senderAvatar'] ?? '', // 如果没有头像，不显示
+                      );
+                    }).toList(),
+                  );
+                } else {
+                  return Center(child: Text("No data available")); // 如果没有数据，显示相应文本
+                }
               },
             ),
           ),
@@ -237,7 +252,7 @@ class _MessagesPageState extends State<MessagesPage> {
   }
 }
 
-class ChatBubble extends StatelessWidget {
+class ChatBubble extends StatefulWidget {
   final bool isSender;
   final String message;
   final String senderName;
@@ -252,34 +267,94 @@ class ChatBubble extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<ChatBubble> createState() => _ChatBubbleState();
+}
+
+class _ChatBubbleState extends State<ChatBubble> {
+  Future<void> addFriend(String senderName) async {
+    final User? currentUser =FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      String currentUserId = currentUser.uid;
+      String friendId = await getUserIdFromName(senderName);
+
+      await FirebaseFirestore.instance.collection('friends').doc(currentUserId).collection('userFriends').doc(friendId).set({
+        'name': senderName,
+        'addedOn': FieldValue.serverTimestamp(),
+      });
+
+      await FirebaseFirestore.instance.collection('friends').doc(friendId).collection('userFriends').doc(currentUserId).set({
+        'name': currentUser.displayName ?? currentUser.email,
+        'addedOn': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  Future<String> getUserIdFromName(String name) async {
+    var result = await FirebaseFirestore.instance
+        .collection('users')
+        .where('name', isEqualTo: name)
+        .limit(1)
+        .get();
+    return result.docs.first.id;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
       child: Column(
         crossAxisAlignment:
-        isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        widget.isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment:
-            isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
+            widget.isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: [
-              if (!isSender)
-                CircleAvatar(
-                  backgroundImage: senderAvatar.isNotEmpty
-                      ? NetworkImage(senderAvatar)
-                      : null,
-                  child: senderAvatar.isEmpty ? Icon(Icons.person) : null,
+              if (!widget.isSender)
+                GestureDetector(
+                  onTap: () {
+                    showDialog(context: context, builder: (context) => AlertDialog(
+                      title: Text('Add Friend'),
+                      content: Text('Do you want to add ${widget.senderName} as your friend?'),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('Cancel'),
+                          onPressed:() {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: Text('Add'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.blue,
+                          ),
+                          onPressed: () {
+                            addFriend(widget.senderName);
+                            Navigator.of(context).pop();
+                          },
+                        )
+                      ],
+                    ),
+                    );
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: widget.senderAvatar.isNotEmpty
+                        ? NetworkImage(widget.senderAvatar)
+                        : null,
+                    child: widget.senderAvatar.isEmpty ? Icon(Icons.person) : null,
+                  ),
                 ),
               const SizedBox(width: 8),
               Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (!isSender)
+                    if (!widget.isSender)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
                         child: Text(
-                          senderName,
+                          widget.senderName,
                           style: TextStyle(
                               fontSize: 12, color: Colors.grey[700]),
                         ),
@@ -288,21 +363,21 @@ class ChatBubble extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSender ? Colors.blue[100] : Colors.grey[300],
+                        color: widget.isSender ? Colors.blue[100] : Colors.grey[300],
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      child: Text(message),
+                      child: Text(widget.message),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              if (isSender)
+              if (widget.isSender)
                 CircleAvatar(
-                  backgroundImage: senderAvatar.isNotEmpty
-                      ? NetworkImage(senderAvatar)
+                  backgroundImage: widget.senderAvatar.isNotEmpty
+                      ? NetworkImage(widget.senderAvatar)
                       : null,
-                  child: senderAvatar.isEmpty ? Icon(Icons.person) : null,
+                  child: widget.senderAvatar.isEmpty ? Icon(Icons.person) : null,
                 ),
             ],
           ),
@@ -318,6 +393,7 @@ class Message {
   final String senderName;
   final String senderAvatar;
   final DateTime timestamp;
+  final bool isPrivate;
 
   Message({
     required this.text,
@@ -325,6 +401,7 @@ class Message {
     required this.senderName,
     required this.senderAvatar,
     required this.timestamp,
+    this.isPrivate = false,
   });
 
   factory Message.fromJson(Map<String, dynamic> data) {
@@ -334,6 +411,7 @@ class Message {
       senderName: data['senderName'] ?? '',
       senderAvatar: data['senderAvatar'] ?? '',
       timestamp: DateTime.fromMillisecondsSinceEpoch(data['timestamp']),
+      isPrivate: data['isPrivate'] ?? false,
     );
   }
 }

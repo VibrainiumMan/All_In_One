@@ -12,7 +12,7 @@ class DailyMotivationPage extends StatefulWidget {
 
 class _DailyMotivationPageState extends State<DailyMotivationPage> {
   String dailyMotivation = 'Fetching your motivational quote...';
-  final String apiUrl = "https://zenquotes.io/api/quotes/your_key"; // Replace with your actual API key
+  final String apiUrl = "https://zenquotes.io/api/quotes/your_key";
 
   @override
   void initState() {
@@ -20,11 +20,11 @@ class _DailyMotivationPageState extends State<DailyMotivationPage> {
     _checkUserAuthentication();
   }
 
-  // Check if the user is logged in
+
   Future<void> _checkUserAuthentication() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      _fetchDailyMotivation();  // Fetch the quote if the user is logged in
+      _fetchDailyMotivation();
     } else {
       setState(() {
         dailyMotivation = 'Please log in to view your daily motivation.';
@@ -40,11 +40,8 @@ class _DailyMotivationPageState extends State<DailyMotivationPage> {
         var data = jsonDecode(response.body);
 
         setState(() {
-          dailyMotivation = data[0]['q']; // Assuming the quote is in the 'q' field
+          dailyMotivation = data[0]['q'];
         });
-
-        // Show the motivational quote in a dialog when the app starts
-        _showMotivationDialog();
       } else {
         setState(() {
           dailyMotivation = 'Failed to load motivation. Please try again later.';
@@ -57,39 +54,68 @@ class _DailyMotivationPageState extends State<DailyMotivationPage> {
     }
   }
 
-  void _showMotivationDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Daily Motivation'),
-          content: Text(dailyMotivation),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Daily Motivation'),
+        title: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.lightbulb_outline),
+            SizedBox(width: 8),
+            Text('Daily Motivation'),
+          ],
+        ),
+        centerTitle: true,
       ),
-      body: Center(
+      body: Container(
+        color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'Welcome! Your motivational quote will appear shortly.',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Quote of the day',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
+              Card(
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    dailyMotivation,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.blueGrey.shade900,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 60),
+              ElevatedButton.icon(
+                onPressed: _fetchDailyMotivation,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Click to get a new quote'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFCA7E8D), // Background color
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+              ),
+            ],
           ),
         ),
       ),

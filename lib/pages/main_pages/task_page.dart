@@ -241,7 +241,7 @@ class _TaskPageState extends State<TaskPage> {
               }).toList(),
             )
                 : const Center(
-              child: Text("There is no task now T^T"),
+              child: Text("Add Task"),
             ),
           ),
         ],

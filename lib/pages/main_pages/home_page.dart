@@ -1,4 +1,3 @@
-import 'package:all_in_one/components/my_button.dart';
 import 'package:all_in_one/pages/auth_pages/flash_card_manager_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -60,7 +59,7 @@ class _HomePageState extends State<HomePage> {
         dailyProgress = dailyTotal > 0 ? dailyCompleted / dailyTotal : 0;
         weeklyProgress = weeklyTotal > 0 ? weeklyCompleted / weeklyTotal : 0;
         monthlyProgress =
-        monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
+            monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
       });
     }
   }
@@ -83,9 +82,28 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Add Note button
+                  //Flash Cards manager button
+                  Column(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const FlashCardManagerPage(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.view_agenda, size: 40,),
+                      ),
+                      const Text("Flash Cards")
+                    ],
+                  ),
+                  const SizedBox(width: 50.0),
+                  //Add Note Button
                   Column(
                     children: [
                       IconButton(
@@ -94,7 +112,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => AddNotePage(),
+                              builder: (context) => const AddNotePage(),
                             ),
                           );
                         },
@@ -102,7 +120,8 @@ class _HomePageState extends State<HomePage> {
                       const Text("Add Note"),
                     ],
                   ),
-                  // View Notes button
+                  const SizedBox(width: 50.0),
+                  //View Notes button
                   Column(
                     children: [
                       IconButton(
@@ -111,7 +130,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ViewNotesPage(),
+                              builder: (context) => const ViewNotesPage(),
                             ),
                           );
                         },
@@ -166,20 +185,6 @@ class _HomePageState extends State<HomePage> {
               height: 200,
               child: const Center(
                 child: Text("Add Calendar"),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: MyButton(
-                text: "Flash Card",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FlashCardManagerPage(),
-                    ),
-                  );
-                },
               ),
             ),
           ],

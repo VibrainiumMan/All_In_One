@@ -6,6 +6,8 @@ import 'package:all_in_one/pages/auth_pages/add_note_page.dart';
 import 'package:all_in_one/pages/auth_pages/view_notes_page.dart';
 import 'package:all_in_one/pages/auth_pages/timer_screen.dart';
 
+import '../../components/my_button.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

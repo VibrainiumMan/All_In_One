@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 
+import 'messages_page.dart';
+
 class FriendsPage extends StatefulWidget {
   @override
   _FriendsPageState createState() => _FriendsPageState();
@@ -98,6 +100,12 @@ class _FriendsPageState extends State<FriendsPage> {
                 if (!snapshot.hasData) {
                   return Center(child: CircularProgressIndicator());
                 }
+                //
+                // snapshot.data!.forEach((doc) {
+                //   Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                //   print("Debug: Document data - $data");
+                // });
+
                 return ListView(
                   children: snapshot.data!.map((doc) {
                     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -107,22 +115,54 @@ class _FriendsPageState extends State<FriendsPage> {
                         backgroundColor: Colors.blue,
                         child: isGroup ? Icon(Icons.group) : Icon(Icons.person),
                       ),
-                      title: Text(data['name']?? 'no name provided'),
-                      subtitle: isGroup ? null : Text(data['email']?? ''),
+                      title: Text(data['remark'] ?? data['name'] ?? 'no name provided'),
+                      subtitle: isGroup ? null : Text(data['email'] ?? ''),
                       onTap: () {
                         print(data);
+                        String displayName = data['remark'] ?? data['name'] ?? 'Unknown';
                         if (isGroup) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => GroupChatPage(groupId: doc.id, groupName: data['name']?? 'New Group'),
+                              builder: (context) => GroupChatPage(
+                                  groupId: doc.id,
+                                  groupName: displayName,
+                              ),
                             ),
                           );
                         }
                         else {
-                          _startChat(doc.id,
-                              data['name']?? 'New Group',
-                              data['avatar']?? 'defaultAvatar');
+                          _startChat(
+                              doc.id,
+                              displayName,
+                              data['avatar'] ?? 'defaultAvatar'
+                          );
+                        }
+                      },
+                      trailing: () {
+                        if (isGroup) {
+                          return IconButton(
+                            icon: Icon(Icons.exit_to_app, color: Colors.red),
+                            onPressed: () {
+                              _showLeaveGroupDialog(doc.id, data['name'] ?? 'Unnamed Group');
+                            },
+                          );
+                        } else {
+                          return IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              _showDeleteFriendDialog(doc.id, data['name'] ?? 'Unknown');
+                            },
+                          );
+                        }
+                      }(),
+                      onLongPress: () {
+                        if (isGroup) {
+                          _showRemarkDialogForGroup(
+                              doc.id, data['remark'] ?? data['name'] ?? '');
+                        } else {
+                          _showRemarkDialog(
+                              doc.id, data['remark'] ?? data['name'] ?? '');
                         }
                       },
                     );
@@ -189,6 +229,100 @@ class _FriendsPageState extends State<FriendsPage> {
     }
   }
 
+  // set remark
+  void _showRemarkDialog(String id, String currentRemark) {
+    TextEditingController remarkController = TextEditingController(text: currentRemark);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Set Remark'),
+          content: TextField(
+            controller: remarkController,
+            decoration: InputDecoration(hintText: "Enter remark name"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Save'),
+              onPressed: () {
+                _saveRemark(id, remarkController.text);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _saveRemark(String id, String remark) {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      FirebaseFirestore.instance
+          .collection('friends')
+          .doc(currentUser.uid)
+          .collection('userFriends')
+          .doc(id)
+          .update({
+        'remark': remark,
+      });
+    }
+  }
+
+  // set group remark
+  void _showRemarkDialogForGroup(String id, String currentRemark) {
+    TextEditingController remarkController = TextEditingController(text: currentRemark);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Set Group Remark'),
+          content: TextField(
+            controller: remarkController,
+            decoration: InputDecoration(hintText: "Enter group remark"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Save'),
+              onPressed: () {
+                _saveGroupRemark(id, remarkController.text);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _saveGroupRemark(String id, String remark) {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      FirebaseFirestore.instance
+          .collection('friends')
+          .doc(currentUser.uid)
+          .collection('userGroups')
+          .doc(id)
+          .update({
+        'remark': remark,
+      });
+    }
+  }
+
   // add friend by email
   void _addFriendByEmail(String email) async {
     final User? currentUser = FirebaseAuth.instance.currentUser;
@@ -197,12 +331,16 @@ class _FriendsPageState extends State<FriendsPage> {
     if (users.docs.isNotEmpty) {
       var friendData = users.docs.first.data();
       String friendId = users.docs.first.id;
+      String friendName = friendData['name'] ?? 'Unknown';
+      String friendEmail = friendData['email'] ?? 'Unknown';
+
 
       if (currentUser != null && friendId != currentUser.uid) {
-
-        FirebaseFirestore.instance.collection('friends').doc(currentUser.uid).collection('userFriends').doc(friendId).set(
-            friendData
-        );
+        FirebaseFirestore.instance.collection('friends').doc(currentUser.uid).collection('userFriends').doc(friendId).set({
+          'name': friendName,
+          'email': friendEmail,
+          'addedOn': FieldValue.serverTimestamp(),
+        });
 
         FirebaseFirestore.instance.collection('friends').doc(friendId).collection('userFriends').doc(currentUser.uid).set({
           'name': currentUser.displayName ?? currentUser.email,
@@ -216,10 +354,98 @@ class _FriendsPageState extends State<FriendsPage> {
   }
 
   // remove friend
+  void _showDeleteFriendDialog(String friendId, String friendName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Friend'),
+          content: Text('Are you sure you want to remove $friendName from your friends list?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: () {
+                _removeFriend(friendId);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _removeFriend(String friendId) {
     final User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
-      FirebaseFirestore.instance.collection('friends').doc(currentUser.uid).collection('userFriends').doc(friendId).delete();
+      FirebaseFirestore.instance
+          .collection('friends')
+          .doc(currentUser.uid)
+          .collection('userFriends')
+          .doc(friendId)
+          .delete();
+
+      FirebaseFirestore.instance
+          .collection('friends')
+          .doc(friendId)
+          .collection('userFriends')
+          .doc(currentUser.uid)
+          .delete();
+    }
+  }
+
+  // leave group
+  void _showLeaveGroupDialog(String groupId, String groupName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Leave Group'),
+          content: Text('Are you sure you want to leave the group "$groupName"?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Leave'),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: () {
+                _leaveGroup(groupId);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _leaveGroup(String groupId) {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      FirebaseFirestore.instance
+          .collection('groups')
+          .doc(groupId)
+          .update({
+        'members': FieldValue.arrayRemove([currentUser.uid]),
+      });
+
+      FirebaseFirestore.instance
+          .collection('friends')
+          .doc(currentUser.uid)
+          .collection('userGroups')
+          .doc(groupId)
+          .delete();
     }
   }
 
@@ -228,7 +454,11 @@ class _FriendsPageState extends State<FriendsPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChatPage(peerId: friendId, peerAvatar: friendAvatar, peerName: friendName),
+        builder: (context) => ChatPage(
+            peerId: friendId,
+            peerAvatar: friendAvatar,
+            peerName: friendName,
+        ),
       ),
     );
   }
@@ -391,13 +621,25 @@ class GroupChatPage extends StatefulWidget {
 class _GroupChatPageState extends State<GroupChatPage> {
   final TextEditingController _messageController = TextEditingController();
 
-  void _sendMessage() {
-    if (_messageController.text.isNotEmpty) {
-      FirebaseFirestore.instance.collection('group_messages').doc(widget.groupId).collection('messages').add({
-        'text': _messageController.text,
-        'senderId': FirebaseAuth.instance.currentUser?.uid,
+  void _sendMessage() async {
+    final text = _messageController.text.trim();
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (text.isNotEmpty && user != null) {
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      String userName = userSnapshot.get('name');
+      String userAvatar = userSnapshot.get('avatar');
+
+      FirebaseFirestore.instance.collection('group_messages').add({
+        'text': text,
+        'sender': user.uid,
+        'senderName': userName,
         'timestamp': FieldValue.serverTimestamp(),
       });
+
       _messageController.clear();
     }
   }
@@ -418,31 +660,34 @@ class _GroupChatPageState extends State<GroupChatPage> {
         children: <Widget>[
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('group_messages').doc(widget.groupId).collection('messages').orderBy('timestamp', descending: false).snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('group_messages')
+                  .orderBy('timestamp', descending: false)
+                  .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
                 }
-                List<DocumentSnapshot> messages = snapshot.data!.docs;
-                return ListView.builder(
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    var message = messages[index];
-                    bool isSentByMe = message['senderId'] == FirebaseAuth.instance.currentUser?.uid;
-                    return Align(
-                      alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-                        margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: isSentByMe ? Colors.blue[100] : Colors.grey[300],
-                        ),
-                        child: Text(message['text'], style: TextStyle(fontSize: 16)),
-                      ),
-                    );
-                  },
-                );
+                if (snapshot.hasError) {
+                  return Text("Error: ${snapshot.error}");
+                }
+                if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                  return ListView(
+                    reverse: false,
+                    children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                      Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                      return ChatBubble(
+                        isSender: data['sender'] == FirebaseAuth.instance.currentUser?.uid,
+                        message: data['text'] ?? '',
+                        senderName: data['senderName'] ?? 'Unknown',
+                        senderAvatar: data['senderAvatar'] ?? '',
+                      );
+                    }).toList(),
+                  );
+                } else {
+                  return Center(child: Text("No messages"));
+                }
               },
             ),
           ),

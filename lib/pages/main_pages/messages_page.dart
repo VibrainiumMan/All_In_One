@@ -189,14 +189,14 @@ class _MessagesPageState extends State<MessagesPage> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator()); // 加载时显示进度指示器
+                  return Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Text("Error: ${snapshot.error}"); // 如果有错误，显示错误信息
+                  return Text("Error: ${snapshot.error}");
                 }
                 if (snapshot.hasData) {
                   if (snapshot.data!.docs.isEmpty) {
-                    return Center(child: Text("No messages")); // 如果没有数据，显示没有消息的文本
+                    return Center(child: Text("No messages"));
                   }
                   return ListView(
                     reverse: false,
@@ -205,13 +205,13 @@ class _MessagesPageState extends State<MessagesPage> {
                       return ChatBubble(
                         isSender: data['sender'] == FirebaseAuth.instance.currentUser?.uid,
                         message: data['text'],
-                        senderName: data['senderName'] ?? 'Unknown', // 如果没有名称，显示 "Unknown"
-                        senderAvatar: data['senderAvatar'] ?? '', // 如果没有头像，不显示
+                        senderName: data['senderName'] ?? 'Unknown',
+                        senderAvatar: data['senderAvatar'] ?? '',
                       );
                     }).toList(),
                   );
                 } else {
-                  return Center(child: Text("No data available")); // 如果没有数据，显示相应文本
+                  return Center(child: Text("No data available"));
                 }
               },
             ),

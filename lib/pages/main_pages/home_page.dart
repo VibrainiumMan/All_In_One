@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:all_in_one/pages/auth_pages/add_note_page.dart';
 import 'package:all_in_one/pages/auth_pages/view_notes_page.dart';
 import 'package:all_in_one/pages/auth_pages/timer_screen.dart';
-
 import '../../components/my_button.dart';
 
 
@@ -179,42 +178,13 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             // Add Calendar Section
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                    color: Theme.of(context).colorScheme.inversePrimary),
-              ),
-              margin: const EdgeInsets.all(10),
-              width: 400,
-              height: 200,
-              child: const Center(
-                child: Text("Add Calendar"),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: MyButton(
-                text: "Flash Card",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FlashCardManagerPage(),
-                    ),
-                  );
-                },
-              ),
-            ),
+
             // Timer button at the bottom
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.timer, color: Colors.black),  // Set the icon color to black
-                label: const Text(
-                  "Study Timer",
-                  style: TextStyle(color: Colors.black),  // Set the text color to black
-                ),
-                onPressed: () {
+              child: MyButton(
+                text: "Study Timer",
+                onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -222,9 +192,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white, // Optional: change button background color if needed
-                ),
               ),
             ),
           ],

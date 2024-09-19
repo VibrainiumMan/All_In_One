@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:all_in_one/pages/auth_pages/add_note_page.dart';
 import 'package:all_in_one/pages/auth_pages/view_notes_page.dart';
 import 'package:all_in_one/pages/auth_pages/timer_screen.dart';
+import 'package:all_in_one/pages/main_pages/daily_motivation_page.dart';
 import '../../components/my_button.dart';
 
 
@@ -164,20 +165,10 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            // Add Schedule Section
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                    color: Theme.of(context).colorScheme.inversePrimary),
-              ),
-              margin: const EdgeInsets.all(10),
-              width: 400,
-              height: 200,
-              child: const Center(
-                child: Text("Add Schedule"),
-              ),
-            ),
-            // Add Calendar Section
+            // daily motivation quote
+            const SizedBox(height: 40),
+            const DailyMotivationPage(),
+            const SizedBox(height: 60),
 
             // Timer button at the bottom
             Padding(

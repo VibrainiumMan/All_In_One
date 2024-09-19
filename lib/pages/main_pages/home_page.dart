@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:all_in_one/pages/auth_pages/add_note_page.dart';
-import 'package:all_in_one/pages/auth_pages/view_notes_page.dart'; // Ensure you import the view notes page
+import 'package:all_in_one/pages/auth_pages/view_notes_page.dart';
+import 'package:all_in_one/pages/auth_pages/timer_screen.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -182,10 +184,37 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
             ),
+            // Timer button at the bottom
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.timer, color: Colors.black),  // Set the icon color to black
+                label: const Text(
+                  "Study Timer",
+                  style: TextStyle(color: Colors.black),  // Set the text color to black
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TimerScreen(showNotification: _showNotification), // Pass the correct function
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white, // Optional: change button background color if needed
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  // Function to show notification
+  void _showNotification(String title, String body) {
+    // Implement notification logic
   }
 
   Widget _buildProgressIndicator(String type, double progress) {

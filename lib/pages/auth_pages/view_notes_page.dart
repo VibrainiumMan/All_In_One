@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:all_in_one/pages/auth_pages/edit_note_page.dart';
+import 'package:all_in_one/pages/auth_pages/note_detail_page.dart';
+
+
 
 class ViewNotesPage extends StatefulWidget {
   const ViewNotesPage({Key? key}) : super(key: key);
@@ -40,7 +44,6 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
               String title = note['title'] ?? 'No Title';
               String content = note['content'] ?? 'No Content';
 
-              // Safely handle the 'createdAt' field
               var createdAt = note['createdAt'] != null
                   ? note['createdAt'].toDate()
                   : null;
@@ -65,7 +68,20 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                         style: const TextStyle(fontSize: 12),
                       ),
                       const SizedBox(width: 10),
-                      // Delete Button after Date
+                      // Edit Button
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditNotePage(noteDoc.id, note),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      // Delete Button
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {
@@ -131,48 +147,5 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
         SnackBar(content: Text("Failed to delete note: $e")),
       );
     }
-  }
-}
-
-class NoteDetailPage extends StatelessWidget {
-  final Map<String, dynamic> note;
-
-  const NoteDetailPage({Key? key, required this.note}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    var createdAt = note['createdAt'] != null
-        ? note['createdAt'].toDate()
-        : null;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(note['title'] ?? 'No Title'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              note['title'] ?? 'No Title',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              note['content'] ?? 'No Content',
-              style: const TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              createdAt != null
-                  ? "Created on: ${createdAt.day}/${createdAt.month}/${createdAt.year}"
-                  : "Created on: Unknown Date",
-              style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

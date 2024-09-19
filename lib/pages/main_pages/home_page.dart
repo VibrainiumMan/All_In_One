@@ -3,6 +3,8 @@ import 'package:all_in_one/pages/auth_pages/flash_card_manager_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:all_in_one/pages/auth_pages/add_note_page.dart';
+import 'package:all_in_one/pages/auth_pages/view_notes_page.dart'; // Ensure you import the view notes page
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -58,7 +60,7 @@ class _HomePageState extends State<HomePage> {
         dailyProgress = dailyTotal > 0 ? dailyCompleted / dailyTotal : 0;
         weeklyProgress = weeklyTotal > 0 ? weeklyCompleted / weeklyTotal : 0;
         monthlyProgress =
-            monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
+        monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
       });
     }
   }
@@ -77,6 +79,49 @@ class _HomePageState extends State<HomePage> {
         width: MediaQuery.of(context).size.width,
         child: ListView(
           children: [
+            // Add Note and View Notes buttons at the top
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Add Note button
+                  Column(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.add, size: 40),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddNotePage(),
+                            ),
+                          );
+                        },
+                      ),
+                      const Text("Add Note"),
+                    ],
+                  ),
+                  // View Notes button
+                  Column(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.book, size: 40),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ViewNotesPage(),
+                            ),
+                          );
+                        },
+                      ),
+                      const Text("View My Notes"),
+                    ],
+                  ),
+                ],
+              ),
+            ),
             // ToDo List Progress Section
             Container(
               decoration: BoxDecoration(
@@ -136,7 +181,7 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
               ),
-            )
+            ),
           ],
         ),
       ),

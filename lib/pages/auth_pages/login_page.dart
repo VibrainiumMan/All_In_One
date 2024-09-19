@@ -1,9 +1,5 @@
-import 'dart:math';
-
-import 'package:all_in_one/pages/main_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import '../../components/my_button.dart';
 import '../../components/text_field.dart';
 import '../../helper/helper_methods.dart';

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../components/my_button.dart';
@@ -37,7 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
           email: emailController.text,
           password: passwordController.text,
         );
-        //createUserDocument(userCredential);
+        createUserDocument(userCredential);
         if (context.mounted) Navigator.pop(context);
       } on FirebaseAuthException catch (e) {
         Navigator.pop(context);
@@ -45,6 +46,27 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     }
   }
+
+
+  void createUserDocument(UserCredential userCredential) async {
+    try {
+      User? user = userCredential.user;
+
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'name': usernameController.text.trim(),
+          'email': user.email,
+          'avatar': '',
+          'uid': user.uid,
+        }
+        );
+      }
+    } catch (e) {
+      print('Error creating user document: $e');
+      displayMessageToUser("Failed to create user data", context);
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {

@@ -19,7 +19,10 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   bool _isPaused = false;
   int _remainingTimeInSeconds = 0;
   int _goalTimeInMinutes = 0;
+  bool _focusFailed = false;
   static const int maxTimeInMinutes = 180;
+  static const int inactivityThreshold = 30; // 30 seconds inactivity threshold
+  Timer? _inactivityTimer;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
@@ -34,6 +37,9 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     if (_timer.isActive) _timer.cancel();
+    if (_inactivityTimer != null && _inactivityTimer!.isActive) {
+      _inactivityTimer!.cancel();
+    }
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -61,6 +67,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
       _goalTimeInMinutes = _studyTimeInMinutes;
       _remainingTimeInSeconds = _studyTimeInMinutes * 60;
       _isTimerRunning = true;
+      _focusFailed = false;
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
@@ -102,6 +109,35 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
+  void _pauseTimer() {
+    if (_timer.isActive) _timer.cancel();
+    setState(() {
+      _isPaused = true;
+      _isTimerRunning = false;
+    });
+  }
+
+  void _continueTimer() {
+    setState(() {
+      _isPaused = false;
+      _isTimerRunning = true;
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      if (_remainingTimeInSeconds == 0) {
+        setState(() {
+          _isTimerRunning = false;
+        });
+        _timer.cancel();
+        _playAlarm();
+      } else {
+        setState(() {
+          _remainingTimeInSeconds--;
+        });
+      }
+    });
+  }
+
   void _resetTimer() {
     setState(() {
       _studyTimeInMinutes = 0;
@@ -109,6 +145,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
       _goalTimeInMinutes = 0;
       _isPaused = false;
       _isTimerRunning = false;
+      _focusFailed = false;
     });
   }
 
@@ -118,6 +155,23 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
       return true; // Allow to leave if the timer hasn't started or has finished
     }
     return false; // Prevent leaving if the timer is still running
+  }
+
+  // Lifecycle event handling: pause/resume
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _inactivityTimer = Timer(Duration(seconds: inactivityThreshold), () {
+        setState(() {
+          _focusFailed = true;
+        });
+        _pauseTimer();
+      });
+    } else if (state == AppLifecycleState.resumed) {
+      if (_inactivityTimer != null && _inactivityTimer!.isActive) {
+        _inactivityTimer!.cancel();
+      }
+    }
   }
 
   @override
@@ -201,7 +255,35 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
                 ),
               ),
               const SizedBox(height: 20),
-              if (!_isPaused && !_isTimerRunning) ...[
+              if (_focusFailed) ...[
+                const Text(
+                  'Focus failed. You left the app for too long.',
+                  style: TextStyle(color: Colors.red, fontSize: 18),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    ElevatedButton(
+                      onPressed: _continueTimer,
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        backgroundColor: theme.colorScheme.primary,
+                      ),
+                      child: const Text('Continue Timer'),
+                    ),
+                    const SizedBox(width: 20),
+                    ElevatedButton(
+                      onPressed: _resetTimer,
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        backgroundColor: theme.colorScheme.primary,
+                      ),
+                      child: const Text('Dismiss Timer'),
+                    ),
+                  ],
+                ),
+              ] else if (!_isPaused && !_isTimerRunning) ...[
                 ElevatedButton(
                   onPressed: _startTimer,
                   style: ElevatedButton.styleFrom(

@@ -8,7 +8,12 @@ class ChatPage extends StatefulWidget {
   final String peerName;
   final String peerAvatar;
 
-  const ChatPage({required this.peerId, required this.peerName, required this.peerAvatar, Key? key}) : super(key: key);
+  const ChatPage(
+      {required this.peerId,
+      required this.peerName,
+      required this.peerAvatar,
+      Key? key})
+      : super(key: key);
 
   @override
   _ChatPageState createState() => _ChatPageState();
@@ -16,6 +21,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   void _sendMessage() {
     if (_messageController.text.isNotEmpty) {
@@ -26,6 +32,14 @@ class _ChatPageState extends State<ChatPage> {
         'timestamp': FieldValue.serverTimestamp(),
       });
       _messageController.clear();
+
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     }
   }
 
@@ -41,7 +55,8 @@ class _ChatPageState extends State<ChatPage> {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('peer_messages')
-                  .where('senderId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                  .where('senderId',
+                      isEqualTo: FirebaseAuth.instance.currentUser?.uid)
                   .where('receiverId', isEqualTo: widget.peerId)
                   .orderBy('timestamp')
                   .snapshots(),
@@ -53,11 +68,24 @@ class _ChatPageState extends State<ChatPage> {
                   return Text("Error: ${senderSnapshot.error}");
                 }
 
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (_scrollController.hasClients) {
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    );
+                  }
+                });
+
                 return ListView(
+                  controller: _scrollController,
                   children: senderSnapshot.data!.docs.map((doc) {
-                    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                    Map<String, dynamic> data =
+                        doc.data() as Map<String, dynamic>;
                     return ChatBubble(
-                      isSender: data['senderId'] == FirebaseAuth.instance.currentUser?.uid,
+                      isSender: data['senderId'] ==
+                          FirebaseAuth.instance.currentUser?.uid,
                       message: data['text'],
                       senderName: widget.peerName,
                       senderAvatar: widget.peerAvatar,

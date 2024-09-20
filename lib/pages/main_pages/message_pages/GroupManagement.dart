@@ -6,7 +6,8 @@ class GroupManagement {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
 
-  void createGroupDialog(BuildContext context, TextEditingController groupNameController) {
+  void createGroupDialog(
+      BuildContext context, TextEditingController groupNameController) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -49,7 +50,12 @@ class GroupManagement {
         'createdOn': FieldValue.serverTimestamp(),
       });
 
-      firestore.collection('friends').doc(currentUser.uid).collection('userGroups').doc(groupRef.id).set({
+      firestore
+          .collection('friends')
+          .doc(currentUser.uid)
+          .collection('userGroups')
+          .doc(groupRef.id)
+          .set({
         'name': finalGroupName,
         'avatar': "default_icon",
         'members': [currentUser.uid],
@@ -57,13 +63,15 @@ class GroupManagement {
     }
   }
 
-  void showLeaveGroupDialog(BuildContext context, String groupId, String groupName) {
+  void showLeaveGroupDialog(
+      BuildContext context, String groupId, String groupName) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Leave Group'),
-          content: Text('Are you sure you want to leave the group "$groupName"?'),
+          content:
+              Text('Are you sure you want to leave the group "$groupName"?'),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
@@ -90,12 +98,19 @@ class GroupManagement {
         'members': FieldValue.arrayRemove([currentUser.uid]),
       });
 
-      firestore.collection('friends').doc(currentUser.uid).collection('userGroups').doc(groupId).delete();
+      firestore
+          .collection('friends')
+          .doc(currentUser.uid)
+          .collection('userGroups')
+          .doc(groupId)
+          .delete();
     }
   }
 
-  void showRemarkDialogForGroup(BuildContext context, String groupId, String currentRemark) {
-    TextEditingController remarkController = TextEditingController(text: currentRemark);
+  void showRemarkDialogForGroup(
+      BuildContext context, String groupId, String currentRemark) {
+    TextEditingController remarkController =
+        TextEditingController(text: currentRemark);
 
     showDialog(
       context: context,

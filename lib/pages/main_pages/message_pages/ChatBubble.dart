@@ -27,12 +27,22 @@ class _ChatBubbleState extends State<ChatBubble> {
       String currentUserId = currentUser.uid;
       String friendId = await getUserIdFromName(senderName);
 
-      await FirebaseFirestore.instance.collection('friends').doc(currentUserId).collection('userFriends').doc(friendId).set({
+      await FirebaseFirestore.instance
+          .collection('friends')
+          .doc(currentUserId)
+          .collection('userFriends')
+          .doc(friendId)
+          .set({
         'name': senderName,
         'addedOn': FieldValue.serverTimestamp(),
       });
 
-      await FirebaseFirestore.instance.collection('friends').doc(friendId).collection('userFriends').doc(currentUserId).set({
+      await FirebaseFirestore.instance
+          .collection('friends')
+          .doc(friendId)
+          .collection('userFriends')
+          .doc(currentUserId)
+          .set({
         'name': currentUser.displayName ?? currentUser.email,
         'addedOn': FieldValue.serverTimestamp(),
       });
@@ -53,39 +63,47 @@ class _ChatBubbleState extends State<ChatBubble> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
       child: Column(
-        crossAxisAlignment: widget.isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            widget.isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: widget.isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
+            mainAxisAlignment: widget.isSender
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
             children: [
               if (!widget.isSender)
                 GestureDetector(
                   onTap: () {
-                    showDialog(context: context, builder: (context) => AlertDialog(
-                      title: const Text('Add Friend'),
-                      content: Text('Do you want to add ${widget.senderName} as your friend?'),
-                      actions: <Widget>[
-                        TextButton(
-                          child: const Text('Cancel'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        TextButton(
-                          child: const Text('Add'),
-                          onPressed: () {
-                            addFriend(widget.senderName);
-                            Navigator.of(context).pop();
-                          },
-                        )
-                      ],
-                    ));
+                    showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                              title: const Text('Add Friend'),
+                              content: Text(
+                                  'Do you want to add ${widget.senderName} as your friend?'),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: const Text('Cancel'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                TextButton(
+                                  child: const Text('Add'),
+                                  onPressed: () {
+                                    addFriend(widget.senderName);
+                                    Navigator.of(context).pop();
+                                  },
+                                )
+                              ],
+                            ));
                   },
                   child: CircleAvatar(
                     backgroundImage: widget.senderAvatar.isNotEmpty
                         ? NetworkImage(widget.senderAvatar)
                         : null,
-                    child: widget.senderAvatar.isEmpty ? const Icon(Icons.person) : null,
+                    child: widget.senderAvatar.isEmpty
+                        ? const Icon(Icons.person)
+                        : null,
                   ),
                 ),
               const SizedBox(width: 8),
@@ -98,13 +116,17 @@ class _ChatBubbleState extends State<ChatBubble> {
                         padding: const EdgeInsets.only(bottom: 4.0),
                         child: Text(
                           widget.senderName,
-                          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[700]),
                         ),
                       ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: widget.isSender ? Colors.blue[100] : Colors.grey[300],
+                        color: widget.isSender
+                            ? Colors.blue[100]
+                            : Colors.grey[300],
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Text(widget.message),
@@ -117,7 +139,9 @@ class _ChatBubbleState extends State<ChatBubble> {
                   backgroundImage: widget.senderAvatar.isNotEmpty
                       ? NetworkImage(widget.senderAvatar)
                       : null,
-                  child: widget.senderAvatar.isEmpty ? const Icon(Icons.person) : null,
+                  child: widget.senderAvatar.isEmpty
+                      ? const Icon(Icons.person)
+                      : null,
                 ),
             ],
           ),

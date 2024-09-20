@@ -7,7 +7,9 @@ class GroupChatPage extends StatefulWidget {
   final String groupId;
   final String groupName;
 
-  const GroupChatPage({required this.groupId, required this.groupName, Key? key}) : super(key: key);
+  const GroupChatPage(
+      {required this.groupId, required this.groupName, Key? key})
+      : super(key: key);
 
   @override
   _GroupChatPageState createState() => _GroupChatPageState();
@@ -16,16 +18,24 @@ class GroupChatPage extends StatefulWidget {
 class _GroupChatPageState extends State<GroupChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   void _sendMessage() async {
     final text = _messageController.text.trim();
     final User? user = FirebaseAuth.instance.currentUser;
     if (text.isNotEmpty && user != null) {
-      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
       String userName = userSnapshot.get('name');
       String userAvatar = userSnapshot.get('avatar');
 
-      FirebaseFirestore.instance.collection('groups').doc(widget.groupId).collection('messages').add({
+      FirebaseFirestore.instance
+          .collection('groups')
+          .doc(widget.groupId)
+          .collection('messages')
+          .add({
         'text': text,
         'sender': user.uid,
         'senderName': userName,
@@ -34,6 +44,18 @@ class _GroupChatPageState extends State<GroupChatPage> {
       });
 
       _messageController.clear();
+
+      _scrollToBottom();
+    }
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
@@ -85,27 +107,37 @@ class _GroupChatPageState extends State<GroupChatPage> {
       var userData = userQuery.docs.first;
       var userId = userData.id;
 
-      var groupRef = FirebaseFirestore.instance.collection('groups').doc(widget.groupId);
+      var groupRef =
+          FirebaseFirestore.instance.collection('groups').doc(widget.groupId);
       var groupSnapshot = await groupRef.get();
 
-      if (groupSnapshot.exists && !(groupSnapshot.data()!['members'] as List).contains(userId)) {
+      if (groupSnapshot.exists &&
+          !(groupSnapshot.data()!['members'] as List).contains(userId)) {
         await groupRef.update({
           'members': FieldValue.arrayUnion([userId])
         });
 
-        await FirebaseFirestore.instance.collection('friends').doc(userId).collection('userGroups').doc(widget.groupId).set({
+        await FirebaseFirestore.instance
+            .collection('friends')
+            .doc(userId)
+            .collection('userGroups')
+            .doc(widget.groupId)
+            .set({
           'avatar': groupSnapshot.data()!['avatar'],
           'members': groupSnapshot.data()!['members'],
           'groupName': groupSnapshot.data()!['name'],
         });
 
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member added successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Member added successfully')));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User is already in the group')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User is already in the group')));
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No user found with that email')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No user found with that email')));
     }
   }
 
@@ -113,7 +145,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat in ${widget.groupName}'),
+        title: Text('Chat in Group ${widget.groupName}'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.add),
@@ -125,7 +157,12 @@ class _GroupChatPageState extends State<GroupChatPage> {
         children: <Widget>[
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('groups').doc(widget.groupId).collection('messages').orderBy('timestamp').snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('groups')
+                  .doc(widget.groupId)
+                  .collection('messages')
+                  .orderBy('timestamp')
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -133,12 +170,20 @@ class _GroupChatPageState extends State<GroupChatPage> {
                 if (snapshot.hasError) {
                   return Text("Error: ${snapshot.error}");
                 }
+
+                WidgetsBinding.instance
+                    .addPostFrameCallback((_) => _scrollToBottom());
+
                 return ListView(
+                  controller: _scrollController,
                   reverse: false,
-                  children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+                  children:
+                      snapshot.data!.docs.map((DocumentSnapshot document) {
+                    Map<String, dynamic> data =
+                        document.data() as Map<String, dynamic>;
                     return ChatBubble(
-                      isSender: data['sender'] == FirebaseAuth.instance.currentUser?.uid,
+                      isSender: data['sender'] ==
+                          FirebaseAuth.instance.currentUser?.uid,
                       message: data['text'] ?? '',
                       senderName: data['senderName'] ?? 'Unknown',
                       senderAvatar: data['senderAvatar'] ?? '',

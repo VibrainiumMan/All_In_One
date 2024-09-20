@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:all_in_one/pages/main_pages/message_pages/FriendsPage.dart';
-import 'package:all_in_one/pages/main_pages/message_pages/FileUploader.dart'; // Adjust the path based on your project structure
+import 'package:all_in_one/pages/main_pages/message_pages/FileUploader.dart';
 import 'package:all_in_one/pages/main_pages/message_pages/ChatBubble.dart';
 import 'package:all_in_one/pages/main_pages/message_pages/MessageSender.dart';
 
@@ -14,10 +14,12 @@ class MessagesPage extends StatefulWidget {
 }
 
 class _MessagesPageState extends State<MessagesPage> {
-  final TextEditingController _controller = TextEditingController(); // Text box control
+  final TextEditingController _controller =
+      TextEditingController(); // Text box control
   final FileUploader fileUploader = FileUploader();
   final MessageSender messageSender = MessageSender();
   bool _isRecording = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -27,6 +29,7 @@ class _MessagesPageState extends State<MessagesPage> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     fileUploader.dispose();
     super.dispose();
   }
@@ -47,8 +50,21 @@ class _MessagesPageState extends State<MessagesPage> {
 
   void _sendMessage() async {
     final text = _controller.text.trim();
-    await messageSender.sendMessage(text, FirebaseAuth.instance.currentUser!.uid);
+    await messageSender.sendMessage(
+        text, FirebaseAuth.instance.currentUser!.uid);
     _controller.clear();
+
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
@@ -57,7 +73,7 @@ class _MessagesPageState extends State<MessagesPage> {
       appBar: AppBar(
         title: Text("Messages",
             style:
-            TextStyle(color: Theme.of(context).colorScheme.inversePrimary)),
+                TextStyle(color: Theme.of(context).colorScheme.inversePrimary)),
         actions: [
           IconButton(
             icon: const Icon(Icons.group),
@@ -87,12 +103,19 @@ class _MessagesPageState extends State<MessagesPage> {
                   return Text("Error: ${snapshot.error}");
                 }
                 if (snapshot.hasData) {
+                  WidgetsBinding.instance
+                      .addPostFrameCallback((_) => _scrollToBottom());
+
                   return ListView(
+                    controller: _scrollController,
                     reverse: false,
-                    children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                      Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+                    children:
+                        snapshot.data!.docs.map((DocumentSnapshot document) {
+                      Map<String, dynamic> data =
+                          document.data() as Map<String, dynamic>;
                       return ChatBubble(
-                        isSender: data['sender'] == FirebaseAuth.instance.currentUser?.uid,
+                        isSender: data['sender'] ==
+                            FirebaseAuth.instance.currentUser?.uid,
                         message: data['text'],
                         senderName: data['senderName'] ?? 'Unknown',
                         senderAvatar: data['senderAvatar'] ?? '',

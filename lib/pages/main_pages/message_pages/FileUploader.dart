@@ -32,14 +32,18 @@ class FileUploader {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String fileName = path.split('/').last;
-      Reference storageRef = FirebaseStorage.instance.ref().child('voiceMessages/$fileName');
+      Reference storageRef =
+          FirebaseStorage.instance.ref().child('voiceMessages/$fileName');
       UploadTask uploadTask = storageRef.putFile(File(path));
 
       try {
         final snapshot = await uploadTask;
         final downloadUrl = await snapshot.ref.getDownloadURL();
 
-        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
         String userName = userSnapshot.get('name');
         String userAvatar = userSnapshot.get('avatar');
 
@@ -75,14 +79,18 @@ class FileUploader {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String fileName = filePath.split('/').last;
-      Reference storageRef = FirebaseStorage.instance.ref().child('uploadedFiles/$fileName');
+      Reference storageRef =
+          FirebaseStorage.instance.ref().child('uploadedFiles/$fileName');
       UploadTask uploadTask = storageRef.putFile(File(filePath));
 
       try {
         final snapshot = await uploadTask;
         final downloadUrl = await snapshot.ref.getDownloadURL();
 
-        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
         String userName = userSnapshot.get('name');
         String userAvatar = userSnapshot.get('avatar');
 

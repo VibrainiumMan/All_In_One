@@ -60,7 +60,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Display created date
+                      // Display Created Date
                       Text(
                         createdAt != null
                             ? "${createdAt.day}/${createdAt.month}/${createdAt.year}"
@@ -109,8 +109,6 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
 
   // Function to confirm deletion
   void _confirmDelete(BuildContext context, String noteId) {
-    final theme = Theme.of(context); // Access theme for colour adaptation
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -118,29 +116,17 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
           title: const Text("Delete Note"),
           content: const Text("Are you sure you want to delete this note?"),
           actions: [
-            // Cancel button with adaptive color
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Dismiss dialog
+                Navigator.of(context).pop(); // Dismiss the dialog
               },
-              style: TextButton.styleFrom(
-                foregroundColor: theme.brightness == Brightness.light
-                    ? Colors.black // Black text in light mode
-                    : Colors.white, // White text in dark mode
-              ),
               child: const Text("Cancel"),
             ),
-            // Delete button with adaptive color
             TextButton(
               onPressed: () {
                 _deleteNote(noteId);
                 Navigator.of(context).pop(); // Dismiss the dialog
               },
-              style: TextButton.styleFrom(
-                foregroundColor: theme.brightness == Brightness.light
-                    ? Colors.black // Black text in light mode
-                    : Colors.white, // White text in dark mode
-              ),
               child: const Text("Delete"),
             ),
           ],
@@ -149,7 +135,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
     );
   }
 
-  // Function to delete note from firestore
+  // Function to delete note from Firestore
   Future<void> _deleteNote(String noteId) async {
     try {
       await FirebaseFirestore.instance.collection('notes').doc(noteId).delete();

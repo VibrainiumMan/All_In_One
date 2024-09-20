@@ -24,6 +24,8 @@ class _EditNotePageState extends State<EditNotePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Access theme for colour adaptation
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Edit Note"),
@@ -69,6 +71,12 @@ class _EditNotePageState extends State<EditNotePage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _updateNote,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: theme.brightness == Brightness.light
+                    ? Colors.black // Black text in light mode
+                    : Colors.white, // White text in dark mode
+                backgroundColor: theme.colorScheme.primary, // Primary color background
+              ),
               child: const Text("Save Changes"),
             ),
           ],
@@ -77,13 +85,14 @@ class _EditNotePageState extends State<EditNotePage> {
     );
   }
 
-  // Function to update note
+  // Function to update note in firestore
   Future<void> _updateNote() async {
     final title = _titleController.text;
     final content = _contentController.text;
 
     if (title.isNotEmpty && content.isNotEmpty) {
       try {
+        // Update note in firestore using provided note ID
         await FirebaseFirestore.instance
             .collection('notes')
             .doc(widget.noteId)
@@ -92,7 +101,7 @@ class _EditNotePageState extends State<EditNotePage> {
           'content': content,
           'updatedAt': Timestamp.now(),
         });
-        Navigator.pop(context); // Return to the previous screen after updating
+        Navigator.pop(context); // Return to previous screen after updating
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error updating note: $e")),

@@ -15,6 +15,9 @@ class _AddNotePageState extends State<AddNotePage> {
 
   @override
   Widget build(BuildContext context) {
+
+    final theme = Theme.of(context); // Access theme for colour adaptation
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Add Note"),
@@ -58,8 +61,16 @@ class _AddNotePageState extends State<AddNotePage> {
               ),
             ),
             const SizedBox(height: 20),
+
+            // Save note button to trigger saving functionality
             ElevatedButton(
               onPressed: _saveNote,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary, // Bg colour
+                foregroundColor: theme.brightness == Brightness.light
+                    ? Colors.black // Black text in light mode
+                    : Colors.white, // White text in dark mode
+              ),
               child: const Text("Save Note"),
             ),
           ],
@@ -68,27 +79,30 @@ class _AddNotePageState extends State<AddNotePage> {
     );
   }
 
-  // Function to save note
+  // Function to save note in firebase
   Future<void> _saveNote() async {
     final title = _titleController.text;
     final content = _contentController.text;
     final user = FirebaseAuth.instance.currentUser;
 
+    // Validate if title and content aren't empty and the user is logged in
     if (title.isNotEmpty && content.isNotEmpty && user != null) {
       try {
+        // Save the note to firestore
         await FirebaseFirestore.instance.collection('notes').add({
           'title': title,
           'content': content,
           'owner': user.email,
           'createdAt': Timestamp.now(),
         });
-        Navigator.pop(context); // Return to the previous screen after saving
+        Navigator.pop(context); // Return to previous screen after saving
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error saving note: $e")),
         );
       }
     } else {
+      // Show a message if required feilds are missing
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill in all fields")),
       );

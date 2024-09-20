@@ -173,16 +173,35 @@ class _HomePageState extends State<HomePage> {
             // Timer button at the bottom
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: MyButton(
-                text: "Study Timer",
-                onTap: () {
+              child: ElevatedButton.icon(
+                icon: Icon(
+                  Icons.alarm, // Alarm icon
+                  color: Theme.of(context).brightness == Brightness.light
+                      ? Colors.black // Black in light mode
+                      : Colors.white, // White in dark mode
+                ),
+                label: Text(
+                  "Study Timer",
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? Colors.black // Use black in light mode
+                        : Colors.white, // Use white in dark mode
+                  ),
+                ),
+                onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TimerScreen(showNotification: _showNotification), // Pass the correct function
+                      builder: (context) => TimerScreen(showNotification: _showNotification),
                     ),
                   );
                 },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  backgroundColor: Theme.of(context).brightness == Brightness.light
+                      ? Colors.grey[300] // Slightly darker button background in light mode
+                      : Theme.of(context).colorScheme.primary,
+                ),
               ),
             ),
           ],

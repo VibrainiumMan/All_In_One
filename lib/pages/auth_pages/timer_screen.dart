@@ -44,6 +44,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  // Initialise local notifications
   void _initializeNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('ic_stat_access_alarms');
@@ -54,7 +55,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
-  // Vibration and notification on completion
+  // Play alarm and notify user when timer ends
   Future<void> _playAlarm() async {
     widget.showNotification('Study Session Over', 'Time to take a break!');
     if (await Vibration.hasVibrator() ?? false) {
@@ -62,6 +63,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     }
   }
 
+  // Function to start study timer
   void _startTimer() {
     setState(() {
       _goalTimeInMinutes = _studyTimeInMinutes;
@@ -70,10 +72,11 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
       _focusFailed = false;
     });
 
+    // Start countdown timer
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
       if (_remainingTimeInSeconds == 0) {
         setState(() {
-          _isTimerRunning = false;
+          _isTimerRunning = false; // Stop the timer when time runs out
         });
         _timer.cancel();
         _playAlarm();
@@ -85,6 +88,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     });
   }
 
+  // Increment the study time by 5 minutes
   void _incrementTime() {
     if (_studyTimeInMinutes + 5 <= maxTimeInMinutes) {
       setState(() {
@@ -94,6 +98,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     }
   }
 
+  // Decrement the study time by 5 minutes
   void _decrementTime() {
     if (_studyTimeInMinutes - 5 >= 0) {
       setState(() {
@@ -103,6 +108,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     }
   }
 
+  // Format time in MM:SS format display
   String _formatTime(int seconds) {
     final minutes = (seconds / 60).floor();
     final remainingSeconds = seconds % 60;
@@ -112,15 +118,16 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   void _pauseTimer() {
     if (_timer.isActive) _timer.cancel();
     setState(() {
-      _isPaused = true;
-      _isTimerRunning = false;
+      _isPaused = true; //Mark timer as paused
+      _isTimerRunning = false; //Stop timer
     });
   }
 
   void _continueTimer() {
     setState(() {
-      _isPaused = false;
-      _isTimerRunning = true;
+      _isPaused = false; // Resume timer from being paused
+      _focusFailed = false; // Reset focus failure state
+      _isTimerRunning = true; // Continue timer
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
@@ -138,6 +145,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     });
   }
 
+  // Function to reset timer to 0
   void _resetTimer() {
     setState(() {
       _studyTimeInMinutes = 0;
@@ -149,12 +157,22 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     });
   }
 
-  // Handle back button restriction
+  // Handle back button restriction when timer still running
   Future<bool> _onWillPop() async {
-    if (!_isTimerRunning || _remainingTimeInSeconds == 0) {
-      return true; // Allow to leave if the timer hasn't started or has finished
+    if (_isTimerRunning) {
+      _showRunningTimerMessage(); // Show a message that timer is still running
+      return false; // Prevent leaving if timer is still running
     }
-    return false; // Prevent leaving if the timer is still running
+    return true; // Allow to leave if timer hasn't started or has finished
+  }
+
+  // Show a message when trying to leave while timer is running
+  void _showRunningTimerMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Timer is still active. Please end the timer before exiting.'),
+      ),
+    );
   }
 
   // Lifecycle event handling: pause/resume
@@ -165,7 +183,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
         setState(() {
           _focusFailed = true;
         });
-        _pauseTimer();
+        _pauseTimer(); // Pause timer when app is in the background for more than 30secs
       });
     } else if (state == AppLifecycleState.resumed) {
       if (_inactivityTimer != null && _inactivityTimer!.isActive) {
@@ -183,7 +201,6 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Timer'),
-          automaticallyImplyLeading: !_isTimerRunning || _remainingTimeInSeconds == 0, // Show back button conditionally
         ),
         backgroundColor: theme.colorScheme.background,
         body: Center(
@@ -228,7 +245,9 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
                     ElevatedButton(
                       onPressed: _decrementTime,
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: theme.colorScheme.onPrimary,
+                        foregroundColor: theme.brightness == Brightness.light
+                            ? Colors.black
+                            : Colors.white,
                         backgroundColor: theme.colorScheme.primary,
                       ),
                       child: const Text('-5 min'),
@@ -237,7 +256,9 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
                     ElevatedButton(
                       onPressed: _incrementTime,
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: theme.colorScheme.onPrimary,
+                        foregroundColor: theme.brightness == Brightness.light
+                            ? Colors.black
+                            : Colors.white,
                         backgroundColor: theme.colorScheme.primary,
                       ),
                       child: const Text('+5 min'),
@@ -267,7 +288,9 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
                     ElevatedButton(
                       onPressed: _continueTimer,
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: theme.colorScheme.onPrimary,
+                        foregroundColor: theme.brightness == Brightness.light
+                            ? Colors.black
+                            : Colors.white,
                         backgroundColor: theme.colorScheme.primary,
                       ),
                       child: const Text('Continue Timer'),
@@ -276,7 +299,9 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
                     ElevatedButton(
                       onPressed: _resetTimer,
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: theme.colorScheme.onPrimary,
+                        foregroundColor: theme.brightness == Brightness.light
+                            ? Colors.black
+                            : Colors.white,
                         backgroundColor: theme.colorScheme.primary,
                       ),
                       child: const Text('Dismiss Timer'),
@@ -287,7 +312,9 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
                 ElevatedButton(
                   onPressed: _startTimer,
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.onPrimary,
+                    foregroundColor: theme.brightness == Brightness.light
+                        ? Colors.black
+                        : Colors.white,
                     backgroundColor: theme.colorScheme.primary,
                   ),
                   child: const Text('Start Timer'),

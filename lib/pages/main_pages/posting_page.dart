@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:image_picker/image_picker.dart';
+
+import 'HashtagPostsPage.dart';
 
 class PostingPage extends StatefulWidget {
-  const PostingPage({super.key});
+  final int? initialScrollToIndex;
+
+  const PostingPage({super.key, this.initialScrollToIndex});
 
   @override
   State<PostingPage> createState() => _PostingPageState();
@@ -13,37 +16,63 @@ class PostingPage extends StatefulWidget {
 class _PostingPageState extends State<PostingPage> {
   final TextEditingController _postController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
-  XFile? _selectedImage;
+  final ScrollController _scrollController = ScrollController();
 
   @override
-  void dispose() {
-    _postController.dispose();
-    _commentController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.initialScrollToIndex != null) {
+        _scrollToIndex(widget.initialScrollToIndex!);
+      }
+    });
   }
 
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      _selectedImage = image;
-    });
+  void _scrollToIndex(int index) {
+    // 스크롤 이동 로직
+    double position = index * 100.0;
+    _scrollController.animateTo(position,
+        duration: Duration(milliseconds: 300), curve: Curves.easeIn);
   }
 
   Future<void> _createPost() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null && _postController.text.isNotEmpty) {
-      await FirebaseFirestore.instance.collection('posts').add({
-        'author': user.email,  // Store the user's email instead of displayName
-        'content': _postController.text,
-        'timestamp': FieldValue.serverTimestamp(),
-        'imageUrl': _selectedImage?.path ?? '',
-      });
+      List<String> hashtags = _extractHashtags(_postController.text);
+      String postContent = _removeHashtags(_postController.text);
+
+      // Create the post in Firestore
+      try {
+        await FirebaseFirestore.instance.collection('posts').add({
+          'author': user.email,
+          'content': postContent,
+          'hashtags': hashtags,
+          'timestamp': FieldValue.serverTimestamp(),
+          'likes': [],
+          'commentCount': 0,
+        });
+
+        print("Post created successfully");
+      } catch (e) {
+        print("Error creating post in Firestore: ${e.toString()}");
+      }
+
       setState(() {
         _postController.clear();
-        _selectedImage = null;
       });
+    } else {
+      print("User is not authenticated or post content is empty.");
     }
+  }
+
+  List<String> _extractHashtags(String content) {
+    final RegExp hashtagRegExp = RegExp(r'#\w+');
+    return hashtagRegExp.allMatches(content).map((match) => match.group(0)!).toList();
+  }
+
+  String _removeHashtags(String content) {
+    final RegExp hashtagRegExp = RegExp(r'#\w+\s*');
+    return content.replaceAll(hashtagRegExp, '').trim();
   }
 
   Future<void> _addComment(String postId) async {
@@ -54,7 +83,7 @@ class _PostingPageState extends State<PostingPage> {
           .doc(postId)
           .collection('comments')
           .add({
-        'author': user.email,  // Store the email instead of displayName
+        'author': user.email,
         'content': _commentController.text,
         'timestamp': FieldValue.serverTimestamp(),
       });
@@ -82,7 +111,7 @@ class _PostingPageState extends State<PostingPage> {
       body: Column(
         children: [
           _buildPostInputArea(),
-          Expanded(child: _buildPostList()),
+          Expanded(child: _buildPostList()), // ListView.builder에 controller 추가
         ],
       ),
     );
@@ -93,10 +122,6 @@ class _PostingPageState extends State<PostingPage> {
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: [
-          IconButton(
-            onPressed: _pickImage,
-            icon: Icon(Icons.image, color: Theme.of(context).colorScheme.primary),
-          ),
           Expanded(
             child: TextField(
               controller: _postController,
@@ -157,9 +182,8 @@ class _PostingPageState extends State<PostingPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(post['author'] ?? 'Anonymous',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                if (post['author'] == user?.email || post['author'] == user?.displayName)
+                Text(post['author'] ?? 'Anonymous', style: TextStyle(fontWeight: FontWeight.bold)),
+                if (post['author'] == user?.email)
                   IconButton(
                     icon: Icon(Icons.delete_outline_outlined, color: Colors.black),
                     onPressed: () => _deletePost(postId),
@@ -168,10 +192,22 @@ class _PostingPageState extends State<PostingPage> {
             ),
             SizedBox(height: 5),
             Text(post['content'] ?? ''),
-            if (post['imageUrl'] != null && post['imageUrl'] != '')
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Image.network(post['imageUrl']),
+            if (post['hashtags'] != null)
+              Wrap(
+                spacing: 8.0,
+                children: List<Widget>.from(post['hashtags'].map<Widget>((hashtag) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HashtagPostsPage(hashtag: hashtag),
+                        ),
+                      );
+                    },
+                    child: Chip(label: Text(hashtag)),
+                  );
+                })),
               ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -222,8 +258,6 @@ class _PostingPageState extends State<PostingPage> {
     }
   }
 
-
-
   Future<void> _deletePost(String postId) async {
     try {
       await FirebaseFirestore.instance.collection('posts').doc(postId).delete();
@@ -232,6 +266,26 @@ class _PostingPageState extends State<PostingPage> {
     }
   }
 
+  Future<void> _deleteComment(String postId, String commentId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(postId)
+          .collection('comments')
+          .doc(commentId)
+          .delete();
+
+      // commentCount를 감소시키는 부분 추가
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(postId)
+          .update({
+        'commentCount': FieldValue.increment(-1),
+      });
+    } catch (e) {
+      print("Error deleting comment: $e");
+    }
+  }
 
   void _showPostDialog(Map<String, dynamic> post, String postId) {
     showDialog(
@@ -242,54 +296,43 @@ class _PostingPageState extends State<PostingPage> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.7, // max height for the dialog
-              minWidth: MediaQuery.of(context).size.width * 0.8,   // width for the dialog
-            ),
+            constraints: BoxConstraints(maxHeight: 400),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
+                Container(
+                  padding: EdgeInsets.all(10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text("Comments:", style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                      Expanded(
-                        child: Container(
-                          height: 200,
-                          child: _buildCommentsSection(postId),
-                        ),
+                      Text("Comments", style: TextStyle(fontSize: 20)),
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),
                 ),
-
+                Expanded(
+                  child: _buildCommentsSection(postId),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
                     controller: _commentController,
                     decoration: InputDecoration(
-                      labelText: "Add a comment",
+                      hintText: "Add a comment...",
                       border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-
-                // add comment button
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      child: Text("Post Comment"),
-                      onPressed: () {
-                        _addComment(postId); // add comment
-                        Navigator.of(context).pop(); // close dialog
-                      },
-                    ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: ElevatedButton(
+                    child: Text("Post Comment"),
+                    onPressed: () {
+                      _addComment(postId);
+                      Navigator.of(context).pop();
+                    },
                   ),
                 ),
               ],
@@ -314,58 +357,43 @@ class _PostingPageState extends State<PostingPage> {
         }
 
         final comments = snapshot.data!.docs;
-        final user = FirebaseAuth.instance.currentUser;
 
         return ListView.builder(
           itemCount: comments.length,
           itemBuilder: (context, index) {
             final comment = comments[index].data() as Map<String, dynamic>;
-            final commentId = comments[index].id;
-
-            return Container(
-              margin: EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: ListTile(
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(comment['author'] ?? 'Anonymous', style: TextStyle(fontSize: 10),),
-                    if (comment['author'] == user?.email)
-                      IconButton(
-                        icon: Icon(Icons.delete_outline, size: 20,),
-                        onPressed: () => _deleteComment(postId, commentId),
-                      ),
-                  ],
-                ),
-                subtitle: Text(comment['content'] ?? ''),
-                contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-              ),
-            );
+            final commentId = comments[index].id; // 댓글 ID를 가져옵니다.
+            return _buildCommentItem(comment, postId, commentId);
           },
         );
       },
     );
   }
 
-  Future<void> _deleteComment(String postId, String commentId) async {
-    try {
-      // Delete comment from Firestore
-      await FirebaseFirestore.instance
-          .collection('posts')
-          .doc(postId)
-          .collection('comments')
-          .doc(commentId)
-          .delete();
+  Widget _buildCommentItem(Map<String, dynamic> comment, String postId, String commentId) {
+    final user = FirebaseAuth.instance.currentUser;
 
-      // decrease number of comments
-      await FirebaseFirestore.instance.collection('posts').doc(postId).update({
-        'commentCount': FieldValue.increment(-1),
-      });
-    } catch (e) {
-      print("Error deleting comment: $e");
-    }
+    return Container(
+      margin: EdgeInsets.all(7),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: ListTile(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(comment['author'] ?? 'Anonymous', style: TextStyle(fontSize: 10)),
+            if (comment['author'] == user?.email)
+              IconButton(
+                icon: Icon(Icons.delete_outline, size: 20),
+                onPressed: () => _deleteComment(postId, commentId), // 댓글 삭제 호출
+              ),
+          ],
+        ),
+        subtitle: Text(comment['content'] ?? ''),
+        contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      ),
+    );
   }
 }

@@ -45,7 +45,36 @@ class _FlashCardManagerPageState extends State<FlashCardManagerPage> {
                   Navigator.of(context).pop();
                 }
               },
-              text: "Text",
+              text: "Save",
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> showDeleteConfirmationDialog(
+      BuildContext context, String deckId) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap a button to dismiss
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Flashcard Deck'),
+          content: const Text('Are you sure you want to delete this deck?'),
+          actions: <Widget>[
+            MyButton(
+              onTap: () {
+                Navigator.of(context).pop(); // Cancel deletion
+              },
+              text: 'Cancel',
+            ),
+            MyButton(
+              onTap: () {
+                deckManager.deleteFlashcardDeck(deckId);
+                Navigator.of(context).pop(); // Confirm deletion
+              },
+              text: 'Delete',
             ),
           ],
         );
@@ -72,11 +101,21 @@ class _FlashCardManagerPageState extends State<FlashCardManagerPage> {
           final decks = snapshot.data!.docs.map((doc) {
             return ListTile(
               title: Text(doc['deckName']),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () {
-                  deckManager.deleteFlashcardDeck(doc.id);
+              trailing: PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'delete') {
+                    showDeleteConfirmationDialog(context, doc.id);
+                  }
+                  // You can add more actions if needed
                 },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Text('Delete'),
+                  ),
+                  // Add other actions here if needed
+                ],
+                icon: const Icon(Icons.more_vert),
               ),
               onTap: () {
                 Navigator.push(

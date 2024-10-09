@@ -6,7 +6,6 @@ import 'package:all_in_one/pages/auth_pages/add_note_page.dart';
 import 'package:all_in_one/pages/auth_pages/view_notes_page.dart';
 import 'package:all_in_one/pages/auth_pages/timer_screen.dart';
 import 'package:all_in_one/pages/main_pages/daily_motivation_page.dart';
-import '../../components/my_button.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -63,7 +62,7 @@ class _HomePageState extends State<HomePage> {
         dailyProgress = dailyTotal > 0 ? dailyCompleted / dailyTotal : 0;
         weeklyProgress = weeklyTotal > 0 ? weeklyCompleted / weeklyTotal : 0;
         monthlyProgress =
-            monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
+        monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
       });
     }
   }
@@ -97,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  const FlashCardManagerPage(),
+                              const FlashCardManagerPage(),
                             ),
                           );
                         },

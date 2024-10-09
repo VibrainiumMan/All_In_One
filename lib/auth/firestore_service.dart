@@ -94,4 +94,23 @@ class FirestoreService {
         .collection('FlashcardDecks')
         .snapshots();
   }
+
+  Future<List<Map<String, dynamic>>> getRandomFlashCards(String setName, int count) async {
+    if (user != null) {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(user!.email)
+          .collection('FlashCardSets')
+          .doc(setName)
+          .collection('FlashCards')
+          .get();
+
+      final allFlashcards = querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+
+      // Shuffle and return 10 flashcards, or less if there aren't 10 available
+      allFlashcards.shuffle();
+      return allFlashcards.take(count).toList();
+    }
+    return [];
+  }
 }

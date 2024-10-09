@@ -1,8 +1,8 @@
 import 'package:all_in_one/components/my_button.dart';
 import 'package:all_in_one/components/text_field.dart';
+import 'package:all_in_one/pages/auth_pages/flash_card_quiz_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
 import '../../auth/firestore_service.dart';
 import '../../components/flash_card.dart';
 import '../../components/my_floating_action_button.dart';
@@ -77,6 +77,20 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         title: Text('${widget.deckName} Deck'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.quiz),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      FlashCardQuizPage(deckName: widget.deckName),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: flashCardManager.getFlashCards(widget.deckName),

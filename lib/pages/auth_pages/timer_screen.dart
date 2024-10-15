@@ -5,8 +5,9 @@ import 'package:vibration/vibration.dart'; // For vibration support
 
 class TimerScreen extends StatefulWidget {
   final Function showNotification;
+  final Function(int) updatePoints; // This function updates points in the homepage
 
-  TimerScreen({required this.showNotification});
+  TimerScreen({required this.showNotification, required this.updatePoints});
 
   @override
   _TimerScreenState createState() => _TimerScreenState();
@@ -61,6 +62,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     if (await Vibration.hasVibrator() ?? false) {
       Vibration.vibrate();
     }
+    _awardPoints(); // Call the points awarding function when session ends
   }
 
   // Function to start study timer
@@ -190,6 +192,11 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
         _inactivityTimer!.cancel();
       }
     }
+  }
+
+  void _awardPoints(){
+    int pointsEarned = _goalTimeInMinutes ~/ 30 * 2; // Award 2 points for every 30 minutes
+    widget.updatePoints(pointsEarned); // Call teh updatePoints function from the homepage
   }
 
   @override

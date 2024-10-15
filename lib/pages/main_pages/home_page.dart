@@ -6,6 +6,8 @@ import 'package:all_in_one/pages/auth_pages/add_note_page.dart';
 import 'package:all_in_one/pages/auth_pages/view_notes_page.dart';
 import 'package:all_in_one/pages/auth_pages/timer_screen.dart';
 import 'package:all_in_one/pages/main_pages/daily_motivation_page.dart';
+import 'package:all_in_one/pages/main_pages/rewards_page.dart';
+
 
 
 class HomePage extends StatefulWidget {
@@ -20,10 +22,14 @@ class _HomePageState extends State<HomePage> {
   double weeklyProgress = 0.0;
   double monthlyProgress = 0.0;
 
+  int totalPoints = 10; // Total points the user needs to redeem a reward
+  int currentPoints = 0; // User's current points
+
   @override
   void initState() {
     super.initState();
     _calculateProgress();
+
   }
 
   void _calculateProgress() async {
@@ -66,9 +72,45 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
+  // Function to update points after study session
+  void _updatePoints(int pointsEarned){
+    setState((){
+      currentPoints += pointsEarned; // Add earned points to current points
+
+      // Check if the user has earned enough points for a reward
+      if (currentPoints >= totalPoints){
+        _showRewardDialog();
+        currentPoints = 0; // Reset points after earning a reward
+      }
+    });
+  }
+
+  // Show reward dialog when the user earns enough points
+  void _showRewardDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Congratulations!"),
+          content: Text("You've earned a free coffee voucher!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
+    // Calculate the progress for the points progress bar
+    double pointsProgress = currentPoints / totalPoints;
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
@@ -102,6 +144,7 @@ class _HomePageState extends State<HomePage> {
                         },
                         icon: const Icon(Icons.view_agenda, size: 40,),
                       ),
+
                       const Text("Flash Cards")
                     ],
                   ),
@@ -164,6 +207,25 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+            // Points Progress Bar
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                children: [
+                  Text(
+                    "You need ${totalPoints - currentPoints} more points to redeem a reward!",
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(height: 20),
+                  LinearProgressIndicator(
+                    value: pointsProgress,
+                    backgroundColor: Colors.grey[300],
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  ),
+                ],
+              ),
+            ),
+
             // daily motivation quote
             const SizedBox(height: 40),
             const DailyMotivationPage(),
@@ -191,7 +253,10 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TimerScreen(showNotification: _showNotification),
+                      builder: (context) => TimerScreen(
+                            showNotification: _showNotification,
+                            updatePoints: _updatePoints, // Pass the points updating function
+                          ),
                     ),
                   );
                 },
@@ -203,6 +268,21 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+          // Add the View Rewards button here
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RewardsPage(currentPoints: currentPoints), // Pass current points
+                  ),
+                );
+              },
+              child: const Text('View Rewards'),
+            ),
+          ),
           ],
         ),
       ),

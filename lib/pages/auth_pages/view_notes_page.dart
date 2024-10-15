@@ -45,7 +45,10 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
         body: Column(
           children: [
             StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('folders').snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('folders')
+                  .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid) // Query folders by user ID
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -259,22 +262,30 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
 
   void _createFolder(String folderName) async {
     if (folderName.isNotEmpty) {
-      await FirebaseFirestore.instance.collection('folders').add({
-        'folderName': folderName,
-        'createdAt': Timestamp.now(),
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Folder '$folderName' created successfully")),
-      );
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
+        await FirebaseFirestore.instance.collection('folders').add({
+          'folderName': folderName,
+          'userId': userId, // Links the folder to the user
+          'createdAt': Timestamp.now(),
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Folder '$folderName' created successfully")),
+        );
+      }
     }
   }
+
 
   void _moveNoteToFolder(BuildContext context, String noteId) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance.collection('folders').snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('folders')
+              .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid) // Filter by userId
+              .snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) return CircularProgressIndicator();
 

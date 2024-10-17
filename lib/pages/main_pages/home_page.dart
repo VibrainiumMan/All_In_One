@@ -36,6 +36,19 @@ class _HomePageState extends State<HomePage> {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
+      // Fetch the user's document from Firestore
+      var userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        var data = userDoc.data();
+        setState(() {
+          currentPoints = data?['points'] ?? 0; // Load points from Firestore
+        });
+      }
+
       final userEmail = user.email;
 
       var tasksSnapshot = await FirebaseFirestore.instance
@@ -67,23 +80,36 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         dailyProgress = dailyTotal > 0 ? dailyCompleted / dailyTotal : 0;
         weeklyProgress = weeklyTotal > 0 ? weeklyCompleted / weeklyTotal : 0;
-        monthlyProgress =
-        monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
+        monthlyProgress = monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
       });
     }
   }
-  // Function to update points after study session
-  void _updatePoints(int pointsEarned){
-    setState((){
-      currentPoints += pointsEarned; // Add earned points to current points
 
-      // Check if the user has earned enough points for a reward
-      if (currentPoints >= totalPoints){
-        _showRewardDialog();
-        currentPoints = 0; // Reset points after earning a reward
-      }
-    });
+  // Function to update points after study session
+  void _updatePoints(int pointsEarned) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      setState(() {
+        currentPoints += pointsEarned; // Add earned points to current points
+
+        // Check if the user has earned enough points for a reward
+        if (currentPoints >= totalPoints) {
+          _showRewardDialog();
+          currentPoints = 0; // Reset points after earning a reward
+        }
+      });
+
+      // Save the updated points in Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid) // Use user's unique ID
+          .set({
+        'points': currentPoints,
+      }, SetOptions(merge: true)); // Merge to update the existing points field
+    }
   }
+
 
   // Show reward dialog when the user earns enough points
   void _showRewardDialog() {

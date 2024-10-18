@@ -194,10 +194,12 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _awardPoints(){
-    int pointsEarned = _goalTimeInMinutes ~/ 30 * 2; // Award 2 points for every 30 minutes
-    widget.updatePoints(pointsEarned); // Call teh updatePoints function from the homepage
+  void _awardPoints() {
+    int pointsEarned = _goalTimeInMinutes ~/ 5 * 2; // Award 2 points for every 5 minutes
+    widget.updatePoints(pointsEarned); // Call the updatePoints function from the homepage
   }
+
+
 
   @override
   Widget build(BuildContext context) {

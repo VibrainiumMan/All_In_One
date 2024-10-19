@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../auth/firestore_service.dart';
 
 class FlashCard extends StatefulWidget {
@@ -8,6 +9,7 @@ class FlashCard extends StatefulWidget {
   final int priority;
   final String deckName;
   final String cardId;
+  final DateTime examDate;
 
   const FlashCard({
     required this.frontText,
@@ -16,6 +18,7 @@ class FlashCard extends StatefulWidget {
     required this.priority,
     required this.deckName,
     required this.cardId,
+    required this.examDate,
   });
 
   @override
@@ -37,12 +40,12 @@ class _FlashCardState extends State<FlashCard> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 300),
       vsync: this,
     )..addListener(() {
-      // Update button visibility based on animation progress
-      setState(() {
-        _isButtonVisible =
-            _flipController.isDismissed || _flipController.isCompleted;
+        // Update button visibility based on animation progress
+        setState(() {
+          _isButtonVisible =
+              _flipController.isDismissed || _flipController.isCompleted;
+        });
       });
-    });
 
     _flipAnimation =
         Tween<double>(begin: 0.0, end: 3.14).animate(_flipController);
@@ -68,7 +71,8 @@ class _FlashCardState extends State<FlashCard> with TickerProviderStateMixin {
   }
 
   void _updatePriority(int newPriority) {
-    flashCardManager.updateFlashCardPriority(widget.deckName, widget.cardId, newPriority);
+    flashCardManager.updateFlashCardPriority(
+        widget.deckName, widget.cardId, newPriority);
   }
 
   Future<void> _showPriorityDialog(BuildContext context) async {
@@ -143,51 +147,53 @@ class _FlashCardState extends State<FlashCard> with TickerProviderStateMixin {
             },
             child: isFlipped
                 ? Container(
-              key: const ValueKey(1),
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.all(20),
-              color: backgroundColor,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    widget.backText,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontSize: 24,
+                    key: const ValueKey(1),
+                    width: MediaQuery.of(context).size.width,
+                    padding: const EdgeInsets.all(20),
+                    color: backgroundColor,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.backText,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            fontSize: 24,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text('Priority: ${widget.priority}',
+                            style: const TextStyle(fontSize: 16)),
+                        Text(
+                            'Exam Date: ${DateFormat('yyyy-MM-dd').format(widget.examDate)}',
+                            style: const TextStyle(fontSize: 16)),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Priority: ${widget.priority}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            )
+                  )
                 : Container(
-              key: const ValueKey(2),
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.all(20),
-              color: backgroundColor,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    widget.frontText,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontSize: 24,
+                    key: const ValueKey(2),
+                    width: MediaQuery.of(context).size.width,
+                    padding: const EdgeInsets.all(20),
+                    color: backgroundColor,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.frontText,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            fontSize: 24,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text('Priority: ${widget.priority}',
+                            style: const TextStyle(fontSize: 16)),
+                        Text(
+                            'Exam Date: ${DateFormat('yyyy-MM-dd').format(widget.examDate)}',
+                            style: const TextStyle(fontSize: 16)),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Priority: ${widget.priority}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
           ),
           Positioned(
             right: 8,

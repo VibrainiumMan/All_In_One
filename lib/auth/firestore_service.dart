@@ -20,7 +20,7 @@ class FirestoreService {
   }
 
   Future<void> addFlashCardToSet(
-      String setName, String frontText, String backText, {int initialPriority = 5}) async {
+      String setName, String frontText, String backText,DateTime examDate, {int initialPriority = 5}) async {
     if (user != null) {
       DocumentReference cardRef = FirebaseFirestore.instance
           .collection('Users')
@@ -35,6 +35,7 @@ class FirestoreService {
         'backText': backText,
         'createdAt': Timestamp.now(),
         'priority' : initialPriority,   // Set init priority
+        'examDate': Timestamp.fromDate(examDate),
       });
     }
   }
@@ -60,6 +61,7 @@ class FirestoreService {
         .collection('FlashCardSets')
         .doc(setName)
         .collection('FlashCards')
+        .orderBy('examDate')
         .orderBy('priority', descending: true)
         .snapshots();
   }
@@ -134,26 +136,53 @@ class FirestoreService {
 
   Future<List<Map<String, dynamic>>> getRandomFlashCards(String setName, int count) async {
     if (user != null) {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+      DateTime now = DateTime.now();
+      DateTime sevenDaysFromNow = now.add(Duration(days: 7));
+
+      QuerySnapshot withinSevenDaysSnapshot = await FirebaseFirestore.instance
           .collection('Users')
           .doc(user!.email)
           .collection('FlashCardSets')
           .doc(setName)
           .collection('FlashCards')
+          .where('examDate', isGreaterThanOrEqualTo: Timestamp.fromDate(now))
+          .where('examDate', isLessThanOrEqualTo: Timestamp.fromDate(sevenDaysFromNow))
+          .orderBy('examDate')
           .get();
 
-      final allFlashcards = querySnapshot.docs.map((doc) {
+      QuerySnapshot afterSevenDaysSnapshot = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(user!.email)
+          .collection('FlashCardSets')
+          .doc(setName)
+          .collection('FlashCards')
+          .where('examDate', isGreaterThan: Timestamp.fromDate(sevenDaysFromNow))
+          .where('priority', isGreaterThan: 1)
+          .orderBy('examDate')
+          .get();
+
+      List<Map<String, dynamic>> allFlashcards = [];
+
+      allFlashcards.addAll(withinSevenDaysSnapshot.docs.map((doc) {
         return {
           'cardId': doc.id,
           'setName': setName,
           ...doc.data() as Map<String, dynamic>
         };
-      }).toList();
+      }).toList());
 
-      // Shuffle and return flashcards
+      allFlashcards.addAll(afterSevenDaysSnapshot.docs.map((doc) {
+        return {
+          'cardId': doc.id,
+          'setName': setName,
+          ...doc.data() as Map<String, dynamic>
+        };
+      }).toList());
+
       allFlashcards.shuffle();
       return allFlashcards.take(count).toList();
     }
     return [];
   }
+
 }

@@ -23,6 +23,7 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
   Future<void> showAddFlashCardDialog(BuildContext context) async {
     final TextEditingController frontTextController = TextEditingController();
     final TextEditingController backTextController = TextEditingController();
+    final TextEditingController examDateController = TextEditingController(); // 控制器用于输入日期
 
     await showDialog(
       context: context,
@@ -44,6 +45,11 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
                 obscureText: false,
                 hintText: "Answer",
               ),
+              MyTextField(
+                controller: examDateController,
+                obscureText: false,
+                hintText: "Exam Date (YYYY-MM-DD)",
+              ),
             ],
           ),
           actions: [
@@ -57,14 +63,19 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
             MyButton(
               onTap: () {
                 if (frontTextController.text.isNotEmpty &&
-                    backTextController.text.isNotEmpty) {
-                  flashCardManager.addFlashCardToSet(
-                    widget.deckName,
-                    frontTextController.text,
-                    backTextController.text,
-                    initialPriority: 5,
-                  );
-                  Navigator.of(context).pop();
+                    backTextController.text.isNotEmpty &&
+                    examDateController.text.isNotEmpty) {
+                  DateTime? examDate = DateTime.tryParse(examDateController.text);
+                  if (examDate != null) {
+                    flashCardManager.addFlashCardToSet(
+                      widget.deckName,
+                      frontTextController.text,
+                      backTextController.text,
+                      examDate,
+                      initialPriority: 5,
+                    );
+                    Navigator.of(context).pop();
+                  }
                 }
               },
               text: "Add",
@@ -115,6 +126,7 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
               priority: doc['priority'],
               deckName: widget.deckName,
               cardId: doc.id,
+              examDate: (doc['examDate'] as Timestamp).toDate(),
             );
           }).toList();
 

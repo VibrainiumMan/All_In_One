@@ -36,6 +36,19 @@ class _HomePageState extends State<HomePage> {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
+      // Fetch the user's document from Firestore
+      var userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        var data = userDoc.data();
+        setState(() {
+          currentPoints = data?['points'] ?? 0; // Load points from Firestore
+        });
+      }
+
       final userEmail = user.email;
 
       var tasksSnapshot = await FirebaseFirestore.instance
@@ -67,32 +80,66 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         dailyProgress = dailyTotal > 0 ? dailyCompleted / dailyTotal : 0;
         weeklyProgress = weeklyTotal > 0 ? weeklyCompleted / weeklyTotal : 0;
-        monthlyProgress =
-        monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
+        monthlyProgress = monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
       });
     }
   }
-  // Function to update points after study session
-  void _updatePoints(int pointsEarned){
-    setState((){
-      currentPoints += pointsEarned; // Add earned points to current points
 
-      // Check if the user has earned enough points for a reward
-      if (currentPoints >= totalPoints){
-        _showRewardDialog();
-        currentPoints = 0; // Reset points after earning a reward
-      }
-    });
+  void _updatePoints(int pointsEarned) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      setState(() {
+        currentPoints += pointsEarned; // Add earned points to current points
+
+        // Checks if the user has earned enough points for a coffee voucher
+        if (currentPoints >= 10) {
+          _showRewardDialog('Free Coffee');
+          _addVoucher('Free Coffee', 10); // Add coffee voucher and deduct 10 points
+          currentPoints = 0; // Reset points after giving the voucher
+        }
+      });
+
+      // Save the updated points in Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid) // Use user's unique ID
+          .set({
+        'points': currentPoints,
+      }, SetOptions(merge: true)); // Merge to update the existing points field
+    }
   }
 
+
+
+
+// Function to add a voucher and subtract the appropriate points
+  void _addVoucher(String reward, int cost) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('vouchers')
+          .add({
+        'voucher': reward,  // Voucher title (always Free Coffee)
+        'isRedeemed': false,  // Indicates that the voucher has not been redeemed yet
+      });
+    }
+  }
+
+
+
+
   // Show reward dialog when the user earns enough points
-  void _showRewardDialog() {
+  void _showRewardDialog(String rewardTitle) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text("Congratulations!"),
-          content: Text("You've earned a free coffee voucher!"),
+          content: Text("You've earned a $rewardTitle voucher!"),
           actions: [
             TextButton(
               onPressed: () {
@@ -105,6 +152,16 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
+
+  // Function to get reward message dynamically based on current points
+  String getRewardMessage() {
+    if (currentPoints < totalPoints) {
+      return "You need ${totalPoints - currentPoints} more points to redeem a coffee voucher!";
+    } else {
+      return "You have enough points for a coffee voucher!";
+    }
+  }
+
 
 
   @override
@@ -213,18 +270,23 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 children: [
                   Text(
-                    "You need ${totalPoints - currentPoints} more points to redeem a reward!",
+                    currentPoints >= totalPoints
+                        ? "You have enough points for a reward!"
+                        : "You need ${totalPoints - currentPoints} more points to redeem a reward!",
                     style: TextStyle(fontSize: 20),
                   ),
                   const SizedBox(height: 20),
                   LinearProgressIndicator(
-                    value: pointsProgress,
+                    value: currentPoints >= totalPoints
+                        ? 1.0
+                        : currentPoints / totalPoints, // Adjust to prevent exceeding progress
                     backgroundColor: Colors.grey[300],
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                   ),
                 ],
               ),
             ),
+
 
             // daily motivation quote
             const SizedBox(height: 40),

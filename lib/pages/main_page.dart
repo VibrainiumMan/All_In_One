@@ -1,5 +1,5 @@
 import 'package:all_in_one/pages/main_pages/home_page.dart';
-import 'package:all_in_one/pages/main_pages/message_pages/MessagesPage.dart';
+import 'package:all_in_one/pages/main_pages/message_pages/FriendsPage.dart';
 import 'package:all_in_one/pages/main_pages/posting_page.dart';
 import 'package:all_in_one/pages/main_pages/profile_page.dart';
 import 'package:all_in_one/pages/main_pages/task_page.dart';
@@ -15,7 +15,7 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int pageIndex = 2;
   final List<Widget> pages = [
-    const MessagesPage(),
+    const FriendsPage(),
     const PostingPage(),
     const HomePage(),
     const TaskPage(),

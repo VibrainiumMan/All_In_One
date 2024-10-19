@@ -58,8 +58,12 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
               onTap: () {
                 if (frontTextController.text.isNotEmpty &&
                     backTextController.text.isNotEmpty) {
-                  flashCardManager.addFlashCardToSet(widget.deckName,
-                      frontTextController.text, backTextController.text);
+                  flashCardManager.addFlashCardToSet(
+                    widget.deckName,
+                    frontTextController.text,
+                    backTextController.text,
+                    initialPriority: 5,
+                  );
                   Navigator.of(context).pop();
                 }
               },
@@ -108,11 +112,17 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
               onDelete: () {
                 flashCardManager.deleteFlashCard(widget.deckName, doc.id);
               },
+              priority: doc['priority'],
+              deckName: widget.deckName,
+              cardId: doc.id,
             );
           }).toList();
 
-          return ListView(
-            children: flashCards,
+          return ListView.builder(
+            itemCount: flashCards.length,
+            itemBuilder: (context, index) {
+              return flashCards[index];
+            },
           );
         },
       ),

@@ -1,3 +1,4 @@
+
 import 'package:all_in_one/pages/auth_pages/quiz_result_page.dart';
 import 'package:flutter/material.dart';
 import '../../auth/firestore_service.dart';
@@ -35,10 +36,40 @@ class _FlashCardQuizPageState extends State<FlashCardQuizPage> {
 
   void checkAnswer() {
     final currentFlashCard = flashCards[currentQuestionIndex];
-    if (answerController.text.trim().toLowerCase() ==
-        currentFlashCard['backText'].trim().toLowerCase()) {
+    final setName = currentFlashCard['setName'];
+    final cardId = currentFlashCard['cardId'];
+    final answerText = answerController.text;
+    final backText = currentFlashCard['backText'];
+    int currentPriority = currentFlashCard['priority'];
+
+    print('Set Name: $setName');
+    print('Card ID: $cardId');
+    print('Current Priority: ${currentFlashCard['priority']}, Type: ${currentFlashCard['priority'].runtimeType}');
+    print('Current flashcard: $currentFlashCard');
+    print('Answer text: $answerText');
+    print('Back text: $backText');
+
+    if (answerText.trim().toLowerCase() == backText.trim().toLowerCase()) {
       correctAnswers++;
+
+      // Set priority -1 when answer correct
+      if (currentPriority > 1) {
+        currentPriority--;
+      }
+    } else {
+      // Set priority +1 when answer wrong
+      if (currentPriority < 10) {
+        currentPriority++;
+      }
     }
+
+    // Update database
+    flashCardManager.updateFlashCardPriority(
+      setName,
+      cardId,
+      currentPriority,
+    );
+
     answerController.clear();
   }
 
@@ -106,7 +137,11 @@ class _FlashCardQuizPageState extends State<FlashCardQuizPage> {
               child: Text(currentQuestionIndex < flashCards.length - 1
                   ? 'Next Question'
                   : 'Finish Quiz',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.secondary),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
               ),
             ),
           ],

@@ -37,7 +37,7 @@ class _FlashCardManagerPageState extends State<FlashCardManagerPage> {
               },
               text: "Cancel",
             ),
-            const SizedBox(height: 5.0,),
+            const SizedBox(height: 5.0),
             MyButton(
               onTap: () {
                 if (deckNameController.text.isNotEmpty) {

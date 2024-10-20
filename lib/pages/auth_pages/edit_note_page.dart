@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:zefyrka/zefyrka.dart';
+import 'dart:convert';
 
 class EditNotePage extends StatefulWidget {
   final String noteId;
@@ -13,20 +15,32 @@ class EditNotePage extends StatefulWidget {
 
 class _EditNotePageState extends State<EditNotePage> {
   late TextEditingController _titleController;
-  late TextEditingController _contentController;
+  late ZefyrController _contentController;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.note['title']);
-    _contentController = TextEditingController(text: widget.note['content']);
+    _initializeContent();
+  }
+
+  void _initializeContent() {
+    try {
+      final contentJson = jsonDecode(widget.note['content']);
+      final document = NotusDocument.fromJson(contentJson);
+      _contentController = ZefyrController(document);
+    } catch (e) {
+      print('Error parsing note content: $e');
+      _contentController = ZefyrController(NotusDocument());
+    }
   }
 
   Future<void> _updateNote() async {
     final title = _titleController.text;
-    final content = _contentController.text;
+    final content = jsonEncode(_contentController.document.toDelta().toJson());
 
-    if (title.isNotEmpty && content.isNotEmpty) {
+    if (title.isNotEmpty) {
       try {
         await FirebaseFirestore.instance.collection('notes').doc(widget.noteId).update({
           'title': title,
@@ -41,7 +55,7 @@ class _EditNotePageState extends State<EditNotePage> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill in all fields")),
+        const SnackBar(content: Text("Please enter a title for the note")),
       );
     }
   }
@@ -68,15 +82,15 @@ class _EditNotePageState extends State<EditNotePage> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: TextFormField(
+              child: ZefyrEditor(
                 controller: _contentController,
-                maxLines: null,
-                decoration: const InputDecoration(
-                  labelText: "Content",
-                  border: OutlineInputBorder(),
-                ),
+                focusNode: _focusNode,
+                autofocus: false,
+                readOnly: false,
+                padding: const EdgeInsets.all(16),
               ),
             ),
+            ZefyrToolbar.basic(controller: _contentController),
           ],
         ),
       ),
@@ -87,6 +101,7 @@ class _EditNotePageState extends State<EditNotePage> {
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 }

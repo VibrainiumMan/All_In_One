@@ -1,10 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:all_in_one/pages/auth_pages/edit_note_page.dart';
 import 'package:all_in_one/pages/auth_pages/note_detail_page.dart';
 import 'package:all_in_one/pages/auth_pages/add_note_page.dart';
-
+import 'package:zefyrka/zefyrka.dart';
 
 class ViewNotesPage extends StatefulWidget {
   const ViewNotesPage({Key? key}) : super(key: key);
@@ -35,7 +37,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
           title: Text(selectedFolderName ?? "My Notes"),
           actions: [
             IconButton(
-              icon: Icon(Icons.create_new_folder),
+              icon: const Icon(Icons.create_new_folder),
               onPressed: () {
                 _createFolderDialog(context);
               },
@@ -44,10 +46,11 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
         ),
         body: Column(
           children: [
+            // Display folders for organizing notes
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('folders')
-                  .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid) // Query folders by user ID
+                  .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -117,6 +120,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                 );
               },
             ),
+            // Display notes in the selected folder
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: selectedFolderId != null
@@ -139,14 +143,13 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                   }
 
                   final notes = snapshot.data!.docs;
-
                   return ListView.builder(
                     itemCount: notes.length,
                     itemBuilder: (context, index) {
                       var noteDoc = notes[index];
                       var note = noteDoc.data() as Map<String, dynamic>;
                       String title = note['title'] ?? 'No Title';
-                      String content = note['content'] ?? 'No Content';
+                      String content = note['content'] ?? '[]';
 
                       var createdAt = note['createdAt'] != null
                           ? note['createdAt'].toDate()
@@ -156,11 +159,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                         margin: const EdgeInsets.all(10),
                         child: ListTile(
                           title: Text(title),
-                          subtitle: Text(
-                            content,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          subtitle: _buildNotePreview(content),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -210,6 +209,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                       );
                     },
                   );
+
                 },
               ),
             ),
@@ -227,6 +227,23 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildNotePreview(String content) {
+    try {
+      final jsonContent = jsonDecode(content);
+      final document = NotusDocument.fromJson(jsonContent);
+      final plainText = document.toPlainText();
+
+      return Text(
+        plainText.length > 50 ? plainText.substring(0, 50) + '...' : plainText,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      );
+    } catch (e) {
+      print('Error parsing note content: $e');
+      return const Text('Error displaying note preview');
+    }
   }
 
   void _createFolderDialog(BuildContext context) {
@@ -266,7 +283,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
       if (userId != null) {
         await FirebaseFirestore.instance.collection('folders').add({
           'folderName': folderName,
-          'userId': userId, // Links the folder to the user
+          'userId': userId,
           'createdAt': Timestamp.now(),
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -276,7 +293,6 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
     }
   }
 
-
   void _moveNoteToFolder(BuildContext context, String noteId) {
     showDialog(
       context: context,
@@ -284,10 +300,10 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
         return StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('folders')
-              .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid) // Filter by userId
+              .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
               .snapshots(),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) return CircularProgressIndicator();
+            if (!snapshot.hasData) return const CircularProgressIndicator();
 
             var folders = snapshot.data!.docs;
             return AlertDialog(

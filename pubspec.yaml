@@ -30,9 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_local_notifications: ^13.0.0
+  flutter_local_notifications: ^17.2.3
 
-  http: ^0.13.5
+  http: ^1.2.2
 
 
 
@@ -51,11 +51,12 @@ dependencies:
   url_launcher: ^6.3.0
   cloud_firestore: ^5.1.0
   image_picker: ^1.1.2
+
   provider: ^6.1.2
   shared_preferences: ^2.3.2
-  vibration: ^1.7.4
-  intl: ^0.19.0
-  mockito: ^5.4.4
+  vibration: ^2.0.1
+  flutter_quill: ^10.8.2
+  zefyrka: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -67,7 +68,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

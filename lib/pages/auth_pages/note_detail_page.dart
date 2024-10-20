@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zefyrka/zefyrka.dart';
+import 'dart:convert';
 
 class NoteDetailPage extends StatelessWidget {
   final Map<String, dynamic> note;
@@ -7,9 +9,7 @@ class NoteDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var createdAt = note['createdAt'] != null
-        ? note['createdAt'].toDate()
-        : null;
+    var createdAt = note['createdAt'] != null ? note['createdAt'].toDate() : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -25,9 +25,8 @@ class NoteDetailPage extends StatelessWidget {
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            Text(
-              note['content'] ?? 'No Content',
-              style: const TextStyle(fontSize: 18),
+            Expanded(
+              child: _buildNoteContent(note['content']),
             ),
             const SizedBox(height: 20),
             Text(
@@ -40,5 +39,25 @@ class NoteDetailPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildNoteContent(String? content) {
+    if (content == null || content.isEmpty) {
+      return const Text('No content');
+    }
+
+    try {
+      final jsonContent = jsonDecode(content);
+      final document = NotusDocument.fromJson(jsonContent);
+
+      return ZefyrEditor(
+        controller: ZefyrController(document),
+        readOnly: true,
+        showCursor: false,
+      );
+    } catch (e) {
+      print('Error parsing note content: $e');
+      return Text(content); // Fallback to displaying raw content
+    }
   }
 }

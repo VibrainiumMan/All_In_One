@@ -28,59 +28,46 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _calculateProgress();
-
+    _listenToTaskUpdates();
   }
 
-  void _calculateProgress() async {
+  void _listenToTaskUpdates() {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      // Fetch the user's document from Firestore
-      var userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      if (userDoc.exists && userDoc.data() != null) {
-        var data = userDoc.data();
-        setState(() {
-          currentPoints = data?['points'] ?? 0; // Load points from Firestore
-        });
-      }
-
       final userEmail = user.email;
 
-      var tasksSnapshot = await FirebaseFirestore.instance
+      FirebaseFirestore.instance
           .collection('tasks')
           .where('owner', isEqualTo: userEmail)
-          .get();
+          .snapshots()
+          .listen((tasksSnapshot) {
+        int dailyTotal = 0, dailyCompleted = 0;
+        int weeklyTotal = 0, weeklyCompleted = 0;
+        int monthlyTotal = 0, monthlyCompleted = 0;
 
-      int dailyTotal = 0, dailyCompleted = 0;
-      int weeklyTotal = 0, weeklyCompleted = 0;
-      int monthlyTotal = 0, monthlyCompleted = 0;
+        for (var doc in tasksSnapshot.docs) {
+          var data = doc.data();
+          String type = data['type'];
+          bool isCompleted = data['isCompleted'] ?? false;
 
-      for (var doc in tasksSnapshot.docs) {
-        var data = doc.data();
-        String type = data['type'];
-        bool isCompleted = data['isCompleted'] ?? false;
-
-        if (type == 'Daily') {
-          dailyTotal++;
-          if (isCompleted) dailyCompleted++;
-        } else if (type == 'Weekly') {
-          weeklyTotal++;
-          if (isCompleted) weeklyCompleted++;
-        } else if (type == 'Monthly') {
-          monthlyTotal++;
-          if (isCompleted) monthlyCompleted++;
+          if (type == 'Daily') {
+            dailyTotal++;
+            if (isCompleted) dailyCompleted++;
+          } else if (type == 'Weekly') {
+            weeklyTotal++;
+            if (isCompleted) weeklyCompleted++;
+          } else if (type == 'Monthly') {
+            monthlyTotal++;
+            if (isCompleted) monthlyCompleted++;
+          }
         }
-      }
 
-      setState(() {
-        dailyProgress = dailyTotal > 0 ? dailyCompleted / dailyTotal : 0;
-        weeklyProgress = weeklyTotal > 0 ? weeklyCompleted / weeklyTotal : 0;
-        monthlyProgress = monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
+        setState(() {
+          dailyProgress = dailyTotal > 0 ? dailyCompleted / dailyTotal : 0;
+          weeklyProgress = weeklyTotal > 0 ? weeklyCompleted / weeklyTotal : 0;
+          monthlyProgress = monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
+        });
       });
     }
   }

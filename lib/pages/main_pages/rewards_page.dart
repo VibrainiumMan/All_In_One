@@ -3,22 +3,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class RewardsPage extends StatefulWidget {
-  final int currentPoints; // Points passed from HomePage
-
-  RewardsPage({required this.currentPoints});
-
   @override
   _RewardsPageState createState() => _RewardsPageState();
 }
 
 class _RewardsPageState extends State<RewardsPage> {
-  List<String> redeemedRewards = []; // List to store redeemed rewards
+  int currentPoints = 0; // Points are now loaded from Firestore
   List<Map<String, dynamic>> availableVouchers = []; // Store vouchers with their status
 
   @override
   void initState() {
     super.initState();
-    _loadVouchers(); // Load vouchers when page loads
+    _loadVouchers();// Load vouchers when page loads
+    _loadCurrentPoints();
   }
 
   // Function to load vouchers from Firestore
@@ -47,6 +44,44 @@ class _RewardsPageState extends State<RewardsPage> {
     }
   }
 
+  // Function to load current points from Firestore
+  void _loadCurrentPoints() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      String userId = user.uid;
+
+      // Fetch the user's points from Firestore
+      var userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      setState(() {
+        currentPoints = userDoc.data()?['points'] ?? 0; // Load points or default to 0
+      });
+    }
+  }
+
+  // Function to update points in Firestore when the user earns points
+  Future<void> _updatePoints(int pointsToAdd) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      String userId = user.uid;
+
+      setState(() {
+        currentPoints += pointsToAdd;
+      });
+
+      // Update points in Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .update({'currentPoints': currentPoints});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +94,7 @@ class _RewardsPageState extends State<RewardsPage> {
           children: <Widget>[
             // Display user's current points
             Text(
-              'Your Points: ${widget.currentPoints}', // Accessing currentPoints from widget
+              'Your Points: $currentPoints', // Accessing currentPoints from widget
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 30),
@@ -76,10 +111,16 @@ class _RewardsPageState extends State<RewardsPage> {
                       subtitle: Text(voucher['isRedeemed'] ? 'Redeemed' : 'Not Redeemed'),
                       trailing: !voucher['isRedeemed']
                           ? ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green, // Button background color
+                          foregroundColor: Colors.white, // Button text color
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Padding
+                          textStyle: const TextStyle(fontSize: 16), // Font size
+                        ),
                         onPressed: () {
                           _redeemVoucher(voucher['id']);
                         },
-                        child: Text('Redeem'),
+                        child: const Text('Redeem'),
                       )
                           : null,
                     );
@@ -109,6 +150,12 @@ class _RewardsPageState extends State<RewardsPage> {
           .collection('vouchers')
           .doc(voucherId)
           .update({'isRedeemed': true});
+
+      // Reset points to 0 after voucher redemption
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .update({'currentPoints': 0});
 
       // Reload vouchers after redemption
       _loadVouchers();

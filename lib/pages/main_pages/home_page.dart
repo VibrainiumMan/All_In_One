@@ -28,6 +28,27 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _listenToTaskUpdates();
+    _loadCurrentPoints();
+  }
+
+  // Function to load the current points from Firestore
+  void _loadCurrentPoints() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      String userId = user.uid;
+
+      // Fetch the user's current points from Firestore
+      var userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      // If the document exists, get the points; otherwise, default to 0
+      setState(() {
+        currentPoints = userDoc.data()?['points'] ?? 0;
+      });
+    }
   }
 
   void _listenToTaskUpdates() {
@@ -116,8 +137,6 @@ class _HomePageState extends State<HomePage> {
   }
 
 
-
-
   // Show reward dialog when the user earns enough points
   void _showRewardDialog(String rewardTitle) {
     showDialog(
@@ -139,14 +158,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Function to get reward message dynamically based on current points
-  String getRewardMessage() {
-    if (currentPoints < totalPoints) {
-      return "You need ${totalPoints - currentPoints} more points to redeem a coffee voucher!";
-    } else {
-      return "You have enough points for a coffee voucher!";
-    }
-  }
 
 
 
@@ -259,7 +270,7 @@ class _HomePageState extends State<HomePage> {
                     currentPoints >= totalPoints
                         ? "You have enough points for a reward!"
                         : "You need ${totalPoints - currentPoints} more points to redeem a reward!",
-                    style: TextStyle(fontSize: 20),
+                    style: const TextStyle(fontSize: 20),
                   ),
                   const SizedBox(height: 20),
                   LinearProgressIndicator(
@@ -320,11 +331,17 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey, // Set the background color
+                foregroundColor: Colors.white, // Set the text color
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // Adjust padding
+                textStyle: const TextStyle(fontSize: 18), // Set text size
+              ),
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => RewardsPage(currentPoints: currentPoints), // Pass current points
+                    builder: (context) => RewardsPage(),
                   ),
                 );
               },

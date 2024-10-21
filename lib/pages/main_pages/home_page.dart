@@ -1,4 +1,5 @@
 import 'package:all_in_one/pages/auth_pages/flash_card_manager_page.dart';
+import 'package:all_in_one/pages/main_pages/progress_indicator_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,8 +8,6 @@ import 'package:all_in_one/pages/auth_pages/view_notes_page.dart';
 import 'package:all_in_one/pages/auth_pages/timer_screen.dart';
 import 'package:all_in_one/pages/main_pages/daily_motivation_page.dart';
 import 'package:all_in_one/pages/main_pages/rewards_page.dart';
-
-
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -244,9 +243,9 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildProgressIndicator("Daily", dailyProgress),
-                    _buildProgressIndicator("Weekly", weeklyProgress),
-                    _buildProgressIndicator("Monthly", monthlyProgress),
+                    ProgressIndicatorWidget(type: "Daily", progress: dailyProgress),
+                    ProgressIndicatorWidget(type: "Weekly", progress: weeklyProgress),
+                    ProgressIndicatorWidget(type: "Monthly", progress: monthlyProgress),
                   ],
                 ),
               ),
@@ -343,30 +342,4 @@ class _HomePageState extends State<HomePage> {
     // Implement notification logic
   }
 
-  Widget _buildProgressIndicator(String type, double progress) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          width: 70,
-          height: 70,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              CircularProgressIndicator(
-                value: progress,
-                strokeWidth: 7,
-                backgroundColor: Colors.grey,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                    Theme.of(context).colorScheme.primary),
-              ),
-              Text('${(progress * 100).toStringAsFixed(0)}%'),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(type),
-      ],
-    );
-  }
 }

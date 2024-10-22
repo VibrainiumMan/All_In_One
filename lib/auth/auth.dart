@@ -1,7 +1,7 @@
 import 'package:all_in_one/pages/main_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../pages/auth_pages/login_or_register.dart';
+import 'login_or_register.dart';
 
 class AuthPage extends StatelessWidget {
   const AuthPage({super.key});

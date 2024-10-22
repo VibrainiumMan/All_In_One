@@ -77,18 +77,45 @@ class _ChatBubbleState extends State<ChatBubble> {
                     showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                              title: const Text('Add Friend'),
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.background,
+                              title: Text(
+                                'Add Friend',
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .inversePrimary,
+                                ),
+                              ),
                               content: Text(
-                                  'Do you want to add ${widget.senderName} as your friend?'),
+                                'Do you want to add ${widget.senderName} as your friend?',
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .inversePrimary,
+                                ),
+                              ),
                               actions: <Widget>[
                                 TextButton(
-                                  child: const Text('Cancel'),
+                                  child: Text(
+                                    'Cancel',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .inversePrimary,
+                                    ),
+                                  ),
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                   },
                                 ),
                                 TextButton(
-                                  child: const Text('Add'),
+                                  child: const Text(
+                                    'Add',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                    ),
+                                  ),
                                   onPressed: () {
                                     addFriend(widget.senderName);
                                     Navigator.of(context).pop();
@@ -102,7 +129,10 @@ class _ChatBubbleState extends State<ChatBubble> {
                         ? NetworkImage(widget.senderAvatar)
                         : null,
                     child: widget.senderAvatar.isEmpty
-                        ? const Icon(Icons.person)
+                        ? Icon(
+                            Icons.person,
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                          )
                         : null,
                   ),
                 ),
@@ -117,7 +147,7 @@ class _ChatBubbleState extends State<ChatBubble> {
                         child: Text(
                           widget.senderName,
                           style:
-                              TextStyle(fontSize: 12, color: Colors.grey[700]),
+                              TextStyle(fontSize: 12, color: Colors.grey[800]),
                         ),
                       ),
                     Container(
@@ -125,11 +155,14 @@ class _ChatBubbleState extends State<ChatBubble> {
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: widget.isSender
-                            ? Colors.blue[100]
-                            : Colors.grey[300],
+                            ? Colors.blue[200]
+                            : Colors.grey[400],
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      child: Text(widget.message),
+                      child: Text(
+                        widget.message,
+                        style: TextStyle(color: Colors.grey[800]),
+                      ),
                     ),
                   ],
                 ),
@@ -140,7 +173,10 @@ class _ChatBubbleState extends State<ChatBubble> {
                       ? NetworkImage(widget.senderAvatar)
                       : null,
                   child: widget.senderAvatar.isEmpty
-                      ? const Icon(Icons.person)
+                      ? Icon(
+                          Icons.person,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        )
                       : null,
                 ),
             ],

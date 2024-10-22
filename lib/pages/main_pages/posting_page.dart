@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-import 'HashtagPostsPage.dart';
+import '../../components/my_elevated_icon_button.dart';
+import '../../components/text_field.dart';
+import 'hashtag_post_page.dart';
 
 class PostingPage extends StatefulWidget {
   final int? initialScrollToIndex;
@@ -29,10 +30,10 @@ class _PostingPageState extends State<PostingPage> {
   }
 
   void _scrollToIndex(int index) {
-    // 스크롤 이동 로직
+// 스크롤 이동 로직
     double position = index * 100.0;
     _scrollController.animateTo(position,
-        duration: Duration(milliseconds: 300), curve: Curves.easeIn);
+        duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
   }
 
   Future<void> _createPost() async {
@@ -41,7 +42,7 @@ class _PostingPageState extends State<PostingPage> {
       List<String> hashtags = _extractHashtags(_postController.text);
       String postContent = _removeHashtags(_postController.text);
 
-      // Create the post in Firestore
+// Create the post in Firestore
       try {
         await FirebaseFirestore.instance.collection('posts').add({
           'author': user.email,
@@ -67,7 +68,10 @@ class _PostingPageState extends State<PostingPage> {
 
   List<String> _extractHashtags(String content) {
     final RegExp hashtagRegExp = RegExp(r'#\w+');
-    return hashtagRegExp.allMatches(content).map((match) => match.group(0)!).toList();
+    return hashtagRegExp
+        .allMatches(content)
+        .map((match) => match.group(0)!)
+        .toList();
   }
 
   String _removeHashtags(String content) {
@@ -103,9 +107,13 @@ class _PostingPageState extends State<PostingPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+        backgroundColor: const Color(0xFF8CAEB7),
         title: Text(
-          "Posting Hub",
-          style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
+          "Community Post",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
         ),
       ),
       body: Column(
@@ -123,17 +131,15 @@ class _PostingPageState extends State<PostingPage> {
       child: Row(
         children: [
           Expanded(
-            child: TextField(
+            child: MyTextField(
               controller: _postController,
-              decoration: InputDecoration(
-                hintText: "What's on your mind?",
-                border: OutlineInputBorder(),
-              ),
+              hintText: "What's on your mind?",
+              obscureText: false,
             ),
           ),
           IconButton(
             onPressed: _createPost,
-            icon: Icon(Icons.send, color: Theme.of(context).colorScheme.primary),
+            icon: const Icon(Icons.send, color: Color(0xFF8CAEB7)),
           ),
         ],
       ),
@@ -148,7 +154,7 @@ class _PostingPageState extends State<PostingPage> {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         final posts = snapshot.data!.docs;
@@ -173,7 +179,8 @@ class _PostingPageState extends State<PostingPage> {
     final isLiked = (post['likes'] ?? []).contains(user?.uid);
 
     return Card(
-      margin: EdgeInsets.all(10),
+      color: Theme.of(context).colorScheme.secondary,
+      margin: const EdgeInsets.all(10),
       child: Padding(
         padding: const EdgeInsets.all(10.0),
         child: Column(
@@ -182,30 +189,41 @@ class _PostingPageState extends State<PostingPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(post['author'] ?? 'Anonymous', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(post['author'] ?? 'Anonymous',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 if (post['author'] == user?.email)
                   IconButton(
-                    icon: Icon(Icons.delete_outline_outlined, color: Colors.black),
+                    icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () => _deletePost(postId),
                   ),
               ],
             ),
-            SizedBox(height: 5),
+            const SizedBox(height: 5),
             Text(post['content'] ?? ''),
-            if (post['hashtags'] != null)
-              Wrap(
-                spacing: 8.0,
-                children: List<Widget>.from(post['hashtags'].map<Widget>((hashtag) {
+            if (post['hashtags'] != null && post['hashtags'].isNotEmpty)
+              Row(
+                children:
+                List<Widget>.from(post['hashtags'].map<Widget>((hashtag) {
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => HashtagPostsPage(hashtag: hashtag),
+                          builder: (context) =>
+                              HashtagPostsPage(hashtag: hashtag),
                         ),
                       );
                     },
-                    child: Chip(label: Text(hashtag)),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Text(
+                        hashtag,
+                        style: const TextStyle(
+                          color: Colors.blue, // Change the color as desired
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   );
                 })),
               ),
@@ -216,17 +234,19 @@ class _PostingPageState extends State<PostingPage> {
                   post['timestamp'] != null
                       ? post['timestamp'].toDate().toString()
                       : 'Just now',
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                 ),
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: isLiked ? Colors.red : null),
+                      icon: Icon(
+                          isLiked ? Icons.favorite : Icons.favorite_border,
+                          color: isLiked ? Colors.red : null),
                       onPressed: () => _toggleLike(postId, post['likes'] ?? []),
                     ),
                     Text('${(post['likes'] ?? []).length}'),
                     IconButton(
-                      icon: Icon(Icons.comment),
+                      icon: const Icon(Icons.comment),
                       onPressed: () => _showPostDialog(post, postId),
                     ),
                     Text('${post['commentCount'] ?? 0}'),
@@ -244,7 +264,8 @@ class _PostingPageState extends State<PostingPage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final isLiked = likes.contains(user.uid);
-      final postRef = FirebaseFirestore.instance.collection('posts').doc(postId);
+      final postRef =
+      FirebaseFirestore.instance.collection('posts').doc(postId);
 
       if (isLiked) {
         await postRef.update({
@@ -275,11 +296,8 @@ class _PostingPageState extends State<PostingPage> {
           .doc(commentId)
           .delete();
 
-      // commentCount를 감소시키는 부분 추가
-      await FirebaseFirestore.instance
-          .collection('posts')
-          .doc(postId)
-          .update({
+// commentCount를 감소시키는 부분 추가
+      await FirebaseFirestore.instance.collection('posts').doc(postId).update({
         'commentCount': FieldValue.increment(-1),
       });
     } catch (e) {
@@ -292,21 +310,22 @@ class _PostingPageState extends State<PostingPage> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
+          backgroundColor: Theme.of(context).colorScheme.background,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
           child: Container(
-            constraints: BoxConstraints(maxHeight: 400),
+            constraints: const BoxConstraints(maxHeight: 400),
             child: Column(
               children: [
                 Container(
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Comments", style: TextStyle(fontSize: 20)),
+                      const Text("Comments", style: TextStyle(fontSize: 20)),
                       IconButton(
-                        icon: Icon(Icons.close),
+                        icon: const Icon(Icons.close),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
@@ -317,18 +336,20 @@ class _PostingPageState extends State<PostingPage> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: TextField(
+                  child: MyTextField(
                     controller: _commentController,
-                    decoration: InputDecoration(
-                      hintText: "Add a comment...",
-                      border: OutlineInputBorder(),
-                    ),
+                    hintText: "Add a comment...",
+                    obscureText: false,
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: ElevatedButton(
-                    child: Text("Post Comment"),
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: MyElevatedIconButton(
+                    label: "Post",
+                    icon: Icon(
+                      Icons.post_add,
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
                     onPressed: () {
                       _addComment(postId);
                       Navigator.of(context).pop();
@@ -353,7 +374,7 @@ class _PostingPageState extends State<PostingPage> {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         final comments = snapshot.data!.docs;
@@ -370,29 +391,33 @@ class _PostingPageState extends State<PostingPage> {
     );
   }
 
-  Widget _buildCommentItem(Map<String, dynamic> comment, String postId, String commentId) {
+  Widget _buildCommentItem(
+      Map<String, dynamic> comment, String postId, String commentId) {
     final user = FirebaseAuth.instance.currentUser;
 
     return Container(
-      margin: EdgeInsets.all(7),
+      margin: const EdgeInsets.all(7),
       decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.secondary,
         border: Border.all(color: Colors.grey),
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: BorderRadius.circular(10.0),
       ),
       child: ListTile(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(comment['author'] ?? 'Anonymous', style: TextStyle(fontSize: 10)),
+            Text(comment['author'] ?? 'Anonymous',
+                style: const TextStyle(fontSize: 13)),
             if (comment['author'] == user?.email)
               IconButton(
-                icon: Icon(Icons.delete_outline, size: 20),
+                icon: const Icon(Icons.delete_outline, size: 20),
                 onPressed: () => _deleteComment(postId, commentId), // 댓글 삭제 호출
               ),
           ],
         ),
-        subtitle: Text(comment['content'] ?? ''),
-        contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        subtitle: Text(comment['content'] ?? '', style: const TextStyle(fontSize: 15),),
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       ),
     );
   }

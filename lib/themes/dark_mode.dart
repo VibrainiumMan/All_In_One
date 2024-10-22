@@ -9,7 +9,7 @@ ThemeData darkMode = ThemeData(
     inversePrimary: Colors.grey.shade300,
   ),
   textTheme: ThemeData.dark().textTheme.apply(
-    bodyColor: Colors.grey[300],
+    bodyColor: Colors.grey[400],
     displayColor: Colors.white,
   ),
 );

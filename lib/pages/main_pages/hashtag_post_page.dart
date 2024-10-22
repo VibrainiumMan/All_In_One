@@ -10,8 +10,16 @@ class HashtagPostsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text('Posts for $hashtag'),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          'Posts for $hashtag',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -20,7 +28,7 @@ class HashtagPostsPage extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           final posts = snapshot.data!.docs;
@@ -38,38 +46,55 @@ class HashtagPostsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPostItem(BuildContext context, Map<String, dynamic> post, String postId) {
+  Widget _buildPostItem(
+      BuildContext context, Map<String, dynamic> post, String postId) {
     final user = FirebaseAuth.instance.currentUser;
     final isLiked = (post['likes'] ?? []).contains(user?.uid);
 
     return Card(
-      margin: EdgeInsets.all(10),
+      color: Theme.of(context).colorScheme.secondary,
+      margin: const EdgeInsets.all(10),
       child: Padding(
         padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(post['author'] ?? 'Anonymous',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 5),
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 5),
             Text(post['content'] ?? ''),
             if (post['hashtags'] != null)
-              Wrap(
-                spacing: 8.0,
-                children: List<Widget>.from(post['hashtags'].map<Widget>((hashtag) {
-                  return Chip(label: Text(hashtag));
-                })),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Wrap(
+                  spacing: 8.0,
+                  children: List<Widget>.from(post['hashtags'].map<Widget>((hashtag) {
+                    return GestureDetector(
+                      onTap: () {
+                        // Handle hashtag tap here if needed
+                      },
+                      child: Text(
+                        hashtag,
+                        style: const TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    );
+                  })),
+                ),
               ),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 IconButton(
-                  icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: isLiked ? Colors.red : null),
+                  icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: isLiked ? Colors.red : null),
                   onPressed: () => _toggleLike(postId, post['likes'] ?? []),
                 ),
                 Text('${(post['likes'] ?? []).length}'),
                 IconButton(
-                  icon: Icon(Icons.comment),
+                  icon: const Icon(Icons.comment),
                   onPressed: () => _showPostDialog(context, post, postId),
                 ),
                 Text('${post['commentCount'] ?? 0}'),
@@ -81,11 +106,59 @@ class HashtagPostsPage extends StatelessWidget {
     );
   }
 
+  /*Widget _buildPostItem(
+      BuildContext context, Map<String, dynamic> post, String postId) {
+    final user = FirebaseAuth.instance.currentUser;
+    final isLiked = (post['likes'] ?? []).contains(user?.uid);
+
+    return Card(
+      color: Theme.of(context).colorScheme.secondary,
+      margin: const EdgeInsets.all(10),
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(post['author'] ?? 'Anonymous',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 5),
+            Text(post['content'] ?? ''),
+            if (post['hashtags'] != null)
+              Wrap(
+                spacing: 8.0,
+                children:
+                    List<Widget>.from(post['hashtags'].map<Widget>((hashtag) {
+                  return Chip(label: Text(hashtag));
+                })),
+              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: isLiked ? Colors.red : null),
+                  onPressed: () => _toggleLike(postId, post['likes'] ?? []),
+                ),
+                Text('${(post['likes'] ?? []).length}'),
+                IconButton(
+                  icon: const Icon(Icons.comment),
+                  onPressed: () => _showPostDialog(context, post, postId),
+                ),
+                Text('${post['commentCount'] ?? 0}'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }*/
+
   Future<void> _toggleLike(String postId, List likes) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final isLiked = likes.contains(user.uid);
-      final postRef = FirebaseFirestore.instance.collection('posts').doc(postId);
+      final postRef =
+      FirebaseFirestore.instance.collection('posts').doc(postId);
 
       if (isLiked) {
         await postRef.update({
@@ -100,7 +173,8 @@ class HashtagPostsPage extends StatelessWidget {
   }
 
   // 댓글 다이얼로그 구현
-  void _showPostDialog(BuildContext context, Map<String, dynamic> post, String postId) {
+  void _showPostDialog(
+      BuildContext context, Map<String, dynamic> post, String postId) {
     final TextEditingController _commentController = TextEditingController();
 
     showDialog(
@@ -111,17 +185,17 @@ class HashtagPostsPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Container(
-            constraints: BoxConstraints(maxHeight: 400),
+            constraints: const BoxConstraints(maxHeight: 400),
             child: Column(
               children: [
                 Container(
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Comments", style: TextStyle(fontSize: 20)),
+                      const Text("Comments", style: TextStyle(fontSize: 20)),
                       IconButton(
-                        icon: Icon(Icons.close),
+                        icon: const Icon(Icons.close),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
@@ -134,7 +208,7 @@ class HashtagPostsPage extends StatelessWidget {
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
                     controller: _commentController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: "Add a comment...",
                       border: OutlineInputBorder(),
                     ),
@@ -143,7 +217,7 @@ class HashtagPostsPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: ElevatedButton(
-                    child: Text("Post Comment"),
+                    child: const Text("Post Comment"),
                     onPressed: () {
                       _addComment(postId, _commentController.text);
                       Navigator.of(context).pop();
@@ -187,7 +261,7 @@ class HashtagPostsPage extends StatelessWidget {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         final comments = snapshot.data!.docs;

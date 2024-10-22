@@ -1,5 +1,5 @@
 import 'package:all_in_one/pages/main_pages/home_page.dart';
-import 'package:all_in_one/pages/main_pages/message_pages/FriendsPage.dart';
+import 'package:all_in_one/pages/main_pages/message_pages/friends_page.dart';
 import 'package:all_in_one/pages/main_pages/posting_page.dart';
 import 'package:all_in_one/pages/main_pages/profile_page.dart';
 import 'package:all_in_one/pages/main_pages/task_page.dart';
@@ -13,7 +13,9 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  int pageIndex = 2;
+  int pageIndex = 2; // Starting from HomePage (index 2)
+  final PageController _pageController = PageController(initialPage: 2); // Initialize PageController
+
   final List<Widget> pages = [
     const FriendsPage(),
     const PostingPage(),
@@ -23,10 +25,21 @@ class _MainPageState extends State<MainPage> {
   ];
 
   @override
+  void dispose() {
+    _pageController.dispose(); // Dispose of the PageController when not needed
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: pageIndex,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            pageIndex = index;
+          });
+        },
         children: pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -34,14 +47,14 @@ class _MainPageState extends State<MainPage> {
         onTap: (index) {
           setState(() {
             pageIndex = index;
+            _pageController.jumpToPage(index); // Change page on bottom nav tap
           });
         },
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         selectedItemColor: Theme.of(context).colorScheme.inversePrimary,
-        unselectedItemColor: Theme.of(context).colorScheme.primary,
-
+        unselectedItemColor: const Color(0xFF8CAEB7),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.message),

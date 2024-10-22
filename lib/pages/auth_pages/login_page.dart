@@ -45,13 +45,7 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.person,
-                size: 80,
-                color: Theme.of(context).colorScheme.inversePrimary,
-              ),
-
-              const SizedBox(height: 40),
+              Image.asset('lib/images/All-In-One-Logo.png'),
 
               //Email field
               MyTextField(
@@ -60,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
                 controller: emailController,
               ),
 
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
 
               //Password field
               MyTextField(
@@ -77,7 +71,7 @@ class _LoginPageState extends State<LoginPage> {
                   Text(
                     "Forgot Password?",
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary),
+                        color: const Color(0xFF8CAEB7)),
                   ),
                 ],
               ),
@@ -104,6 +98,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: const Text(
                       "Register Here ",
                       style: TextStyle(
+                        color: Color(0xFF8CAEB7),
                         fontWeight: FontWeight.bold,
                       ),
                     ),

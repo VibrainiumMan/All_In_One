@@ -9,11 +9,20 @@ class NoteDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var createdAt = note['createdAt'] != null ? note['createdAt'].toDate() : null;
+    var createdAt =
+        note['createdAt'] != null ? note['createdAt'].toDate() : null;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text(note['title'] ?? 'No Title'),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          note['title'] ?? 'No Title',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -22,7 +31,7 @@ class NoteDetailPage extends StatelessWidget {
           children: [
             Text(
               note['title'] ?? 'No Title',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
             Expanded(
@@ -33,7 +42,7 @@ class NoteDetailPage extends StatelessWidget {
               createdAt != null
                   ? "Created on: ${createdAt.day}/${createdAt.month}/${createdAt.year}"
                   : "Created on: Unknown Date",
-              style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+              style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
             ),
           ],
         ),
@@ -43,7 +52,7 @@ class NoteDetailPage extends StatelessWidget {
 
   Widget _buildNoteContent(String? content) {
     if (content == null || content.isEmpty) {
-      return const Text('No content');
+      return const Text('No content', style: TextStyle(fontSize: 20, fontStyle: FontStyle.italic),);
     }
 
     try {

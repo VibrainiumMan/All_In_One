@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../components/text_field.dart';
 import 'ChatBubble.dart';
 
 class GroupChatPage extends StatefulWidget {
@@ -64,24 +65,37 @@ class _GroupChatPageState extends State<GroupChatPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Add New Member'),
-          content: TextField(
-            controller: _emailController,
-            decoration: const InputDecoration(
-              hintText: "Enter user's email",
-              labelText: 'Email',
-              border: OutlineInputBorder(),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            'Add New Member',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
             ),
+          ),
+          content: MyTextField(
+            controller: _emailController,
+            hintText: 'Email',
+            obscureText: false,
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Add'),
+              child: const Text(
+                'Add',
+                style: TextStyle(
+                  color: Colors.green,
+                ),
+              ),
               onPressed: () {
                 _findAndAddUser(_emailController.text.trim());
               },
@@ -144,11 +158,21 @@ class _GroupChatPageState extends State<GroupChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text('Chat in Group ${widget.groupName}'),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          'Chat in Group ${widget.groupName}',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
+        ),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: Icon(
+              Icons.add,
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
             onPressed: _addNewMember,
           ),
         ],
@@ -198,18 +222,17 @@ class _GroupChatPageState extends State<GroupChatPage> {
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: TextField(
+                  child: MyTextField(
                     controller: _messageController,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                    ),
+                    hintText: 'Send a message',
+                    obscureText: false,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.send),
+                  icon: Icon(
+                    Icons.send,
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
                   onPressed: _sendMessage,
                 ),
               ],

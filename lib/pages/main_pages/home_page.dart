@@ -1,5 +1,5 @@
 import 'package:all_in_one/pages/auth_pages/flash_card_manager_page.dart';
-import 'package:all_in_one/pages/main_pages/progress_indicator_widget.dart';
+import 'package:all_in_one/components/progress_indicator_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +8,8 @@ import 'package:all_in_one/pages/auth_pages/view_notes_page.dart';
 import 'package:all_in_one/pages/auth_pages/timer_screen.dart';
 import 'package:all_in_one/pages/main_pages/daily_motivation_page.dart';
 import 'package:all_in_one/pages/main_pages/rewards_page.dart';
+
+import '../../components/my_elevated_Icon_button.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -86,7 +88,8 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           dailyProgress = dailyTotal > 0 ? dailyCompleted / dailyTotal : 0;
           weeklyProgress = weeklyTotal > 0 ? weeklyCompleted / weeklyTotal : 0;
-          monthlyProgress = monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
+          monthlyProgress =
+              monthlyTotal > 0 ? monthlyCompleted / monthlyTotal : 0;
         });
       });
     }
@@ -102,7 +105,8 @@ class _HomePageState extends State<HomePage> {
         // Checks if the user has earned enough points for a coffee voucher
         if (currentPoints >= 10) {
           _showRewardDialog('Free Coffee');
-          _addVoucher('Free Coffee', 10); // Add coffee voucher and deduct 10 points
+          _addVoucher(
+              'Free Coffee', 10); // Add coffee voucher and deduct 10 points
           currentPoints = 0; // Reset points after giving the voucher
         }
       });
@@ -117,9 +121,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
-
-
 // Function to add a voucher and subtract the appropriate points
   void _addVoucher(String reward, int cost) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -130,12 +131,13 @@ class _HomePageState extends State<HomePage> {
           .doc(user.uid)
           .collection('vouchers')
           .add({
-        'voucher': reward,  // Voucher title (always Free Coffee)
-        'isRedeemed': false,  // Indicates that the voucher has not been redeemed yet
+        'voucher': reward,
+        // Voucher title (always Free Coffee)
+        'isRedeemed': false,
+        // Indicates that the voucher has not been redeemed yet
       });
     }
   }
-
 
   // Show reward dialog when the user earns enough points
   void _showRewardDialog(String rewardTitle) {
@@ -143,23 +145,33 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Congratulations!"),
-          content: Text("You've earned a $rewardTitle voucher!"),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            "Congratulations!",
+            style:
+                TextStyle(color: Theme.of(context).colorScheme.inversePrimary,),
+          ),
+          content: Text(
+            "You've earned a $rewardTitle voucher!",
+            style:
+                TextStyle(color: Theme.of(context).colorScheme.inversePrimary,),
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("OK"),
+              child: Text(
+                "OK",
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,),
+              ),
             ),
           ],
         );
       },
     );
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -168,9 +180,13 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+        backgroundColor: const Color(0xFF8CAEB7),
         title: Text(
-          "Home Page",
-          style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
+          "Home",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
         ),
       ),
       body: SizedBox(
@@ -192,14 +208,22 @@ class _HomePageState extends State<HomePage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                              const FlashCardManagerPage(),
+                                  const FlashCardManagerPage(),
                             ),
                           );
                         },
-                        icon: const Icon(Icons.view_agenda, size: 40,),
+                        icon: Icon(
+                          Icons.view_agenda,
+                          size: 40,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
                       ),
-
-                      const Text("Flash Cards")
+                      Text(
+                        "Flash Cards",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                      )
                     ],
                   ),
                   const SizedBox(width: 50.0),
@@ -207,7 +231,11 @@ class _HomePageState extends State<HomePage> {
                   Column(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.add, size: 40),
+                        icon: Icon(
+                          Icons.add,
+                          size: 40,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -217,7 +245,12 @@ class _HomePageState extends State<HomePage> {
                           );
                         },
                       ),
-                      const Text("Add Note"),
+                      Text(
+                        "Add Note",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(width: 50.0),
@@ -225,17 +258,26 @@ class _HomePageState extends State<HomePage> {
                   Column(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.book, size: 40),
+                        icon: Icon(
+                          Icons.book,
+                          size: 40,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
                         onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => ViewNotesPage(),
+                              builder: (context) => ViewNotesPage(),
                             ),
                           );
                         },
                       ),
-                      const Text("View My Notes"),
+                      Text(
+                        "View My Notes",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -244,8 +286,10 @@ class _HomePageState extends State<HomePage> {
             // ToDo List Progress Section
             Container(
               decoration: BoxDecoration(
-                border: Border.all(
-                    color: Theme.of(context).colorScheme.inversePrimary),
+                color: Theme.of(context).colorScheme.secondary,
+                border:
+                    Border.all(color: Theme.of(context).colorScheme.secondary),
+                borderRadius: BorderRadius.circular(16),
               ),
               margin: const EdgeInsets.all(10),
               width: 400,
@@ -254,9 +298,12 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ProgressIndicatorWidget(type: "Daily", progress: dailyProgress),
-                    ProgressIndicatorWidget(type: "Weekly", progress: weeklyProgress),
-                    ProgressIndicatorWidget(type: "Monthly", progress: monthlyProgress),
+                    ProgressIndicatorWidget(
+                        type: "Daily", progress: dailyProgress),
+                    ProgressIndicatorWidget(
+                        type: "Weekly", progress: weeklyProgress),
+                    ProgressIndicatorWidget(
+                        type: "Monthly", progress: monthlyProgress),
                   ],
                 ),
               ),
@@ -270,20 +317,23 @@ class _HomePageState extends State<HomePage> {
                     currentPoints >= totalPoints
                         ? "You have enough points for a reward!"
                         : "You need ${totalPoints - currentPoints} more points to redeem a reward!",
-                    style: const TextStyle(fontSize: 20),
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   LinearProgressIndicator(
                     value: currentPoints >= totalPoints
                         ? 1.0
-                        : currentPoints / totalPoints, // Adjust to prevent exceeding progress
+                        : currentPoints / totalPoints,
+                    // Adjust to prevent exceeding progress
                     backgroundColor: Colors.grey[300],
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                   ),
                 ],
               ),
             ),
-
 
             // daily motivation quote
             const SizedBox(height: 40),
@@ -293,61 +343,44 @@ class _HomePageState extends State<HomePage> {
             // Timer button at the bottom
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: ElevatedButton.icon(
+              child: MyElevatedIconButton(
                 icon: Icon(
                   Icons.alarm, // Alarm icon
                   color: Theme.of(context).brightness == Brightness.light
                       ? Colors.black // Black in light mode
                       : Colors.white, // White in dark mode
                 ),
-                label: Text(
-                  "Study Timer",
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.light
-                        ? Colors.black // Use black in light mode
-                        : Colors.white, // Use white in dark mode
-                  ),
-                ),
+                label: "Study Timer",
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => TimerScreen(
-                            showNotification: _showNotification,
-                            updatePoints: _updatePoints, // Pass the points updating function
-                          ),
+                        showNotification: _showNotification,
+                        updatePoints:
+                            _updatePoints, // Pass the points updating function
+                      ),
                     ),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  backgroundColor: Theme.of(context).brightness == Brightness.light
-                      ? Colors.grey[300] // Slightly darker button background in light mode
-                      : Theme.of(context).colorScheme.primary,
-                ),
               ),
             ),
-          // Add the View Rewards button here
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey, // Set the background color
-                foregroundColor: Colors.white, // Set the text color
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // Adjust padding
-                textStyle: const TextStyle(fontSize: 18), // Set text size
+            // Add the View Rewards button here
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: MyElevatedIconButton(
+                icon: Icon(Icons.card_giftcard, color: Theme.of(context).colorScheme.inversePrimary,),
+                label: "View Rewards",
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RewardsPage(),
+                    ),
+                  );
+                },
               ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RewardsPage(),
-                  ),
-                );
-              },
-              child: const Text('View Rewards'),
             ),
-          ),
           ],
         ),
       ),
@@ -358,5 +391,4 @@ class _HomePageState extends State<HomePage> {
   void _showNotification(String title, String body) {
     // Implement notification logic
   }
-
 }

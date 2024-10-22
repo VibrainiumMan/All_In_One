@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zefyrka/zefyrka.dart';
 import 'dart:convert';
 
+import '../../components/text_field.dart';
+
 class AddNotePage extends StatefulWidget {
   const AddNotePage({Key? key}) : super(key: key);
 
@@ -38,7 +40,8 @@ class _AddNotePageState extends State<AddNotePage> {
     }
 
     if (user == null) {
-      _showErrorSnackBar("User not authenticated. Please log in and try again.");
+      _showErrorSnackBar(
+          "User not authenticated. Please log in and try again.");
       return;
     }
 
@@ -70,11 +73,18 @@ class _AddNotePageState extends State<AddNotePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text("Add Note"),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          "Add Note",
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+              fontSize: 25),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.save),
+            icon: Icon(Icons.save, color: Theme.of(context).colorScheme.inversePrimary,),
             onPressed: _saveNote,
           ),
         ],
@@ -83,15 +93,10 @@ class _AddNotePageState extends State<AddNotePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextFormField(
+            MyTextField(
               controller: _titleController,
-              decoration: InputDecoration(
-                labelText: "Title",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-                ),
-              ),
+              hintText: "Title",
+              obscureText: false,
             ),
             const SizedBox(height: 20),
             Expanded(

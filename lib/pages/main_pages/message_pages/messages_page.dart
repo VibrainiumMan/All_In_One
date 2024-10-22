@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:all_in_one/pages/main_pages/message_pages/FriendsPage.dart';
-import 'package:all_in_one/pages/main_pages/message_pages/FileUploader.dart';
+import 'package:all_in_one/pages/main_pages/message_pages/friends_page.dart';
+import 'package:all_in_one/pages/main_pages/message_pages/file_uploader.dart';
 import 'package:all_in_one/pages/main_pages/message_pages/ChatBubble.dart';
-import 'package:all_in_one/pages/main_pages/message_pages/MessageSender.dart';
+import 'package:all_in_one/pages/main_pages/message_pages/message_sender.dart';
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key});

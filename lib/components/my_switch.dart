@@ -11,6 +11,10 @@ class MySwitch extends StatelessWidget {
     return Switch(
       value: value,
       onChanged: onChanged,
+      activeColor: Colors.grey.shade800,
+      inactiveThumbColor: Colors.grey.shade800,
+      activeTrackColor: const Color(0xFF8CAEB7),
+      inactiveTrackColor: const Color(0xFF8CAEB7),
     );
   }
 }

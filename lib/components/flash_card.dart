@@ -84,11 +84,22 @@ class _FlashCardState extends State<FlashCard> with TickerProviderStateMixin {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Setting priority'),
+              backgroundColor: Theme.of(context).colorScheme.background,
+              title: Text(
+                'Setting priority',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Set priority (1 - 10):'),
+                  Text(
+                    'Set priority (1 - 10):',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                  ),
                   const SizedBox(height: 20),
                   Slider(
                     value: selectedPriority.toDouble(),
@@ -109,14 +120,24 @@ class _FlashCardState extends State<FlashCard> with TickerProviderStateMixin {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Cancel'),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                  ),
                 ),
                 TextButton(
                   onPressed: () {
                     _updatePriority(selectedPriority);
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Confirm'),
+                  child: const Text(
+                    'Confirm',
+                    style: TextStyle(
+                      color: Colors.green,
+                    ),
+                  ),
                 ),
               ],
             );
@@ -186,11 +207,20 @@ class _FlashCardState extends State<FlashCard> with TickerProviderStateMixin {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Text('Priority: ${widget.priority}',
-                            style: const TextStyle(fontSize: 16)),
                         Text(
-                            'Exam Date: ${DateFormat('yyyy-MM-dd').format(widget.examDate)}',
-                            style: const TextStyle(fontSize: 16)),
+                          'Priority: ${widget.priority}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                          ),
+                        ),
+                        Text(
+                          'Exam Date: ${DateFormat('yyyy-MM-dd').format(widget.examDate)}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -203,7 +233,7 @@ class _FlashCardState extends State<FlashCard> with TickerProviderStateMixin {
               child: IconButton(
                 icon: const Icon(
                   Icons.delete,
-                  color: Colors.black,
+                  color: Colors.red,
                 ),
                 onPressed: widget.onDelete,
               ),

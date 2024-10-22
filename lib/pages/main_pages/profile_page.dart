@@ -1,6 +1,7 @@
 import 'package:all_in_one/pages/main_pages/settings_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../auth/firestore_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -10,8 +11,22 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  String? _username;
 
-  void logout(){
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsername();
+  }
+
+  Future<void> _fetchUsername() async {
+    String? username = await FirestoreService().getUsername();
+    setState(() {
+      _username = username;
+    });
+  }
+
+  void logout() {
     FirebaseAuth.instance.signOut();
   }
 
@@ -20,9 +35,13 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+        backgroundColor: const Color(0xFF8CAEB7),
         title: Text(
           "Profile",
-          style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
         ),
       ),
       body: Center(
@@ -35,9 +54,10 @@ class _ProfilePageState extends State<ProfilePage> {
               color: Theme.of(context).colorScheme.inversePrimary,
             ),
             const SizedBox(height: 5),
-            const Text(
-              "\"Username\"",
-              style: TextStyle(fontSize: 20),
+            // Display the username or a loading indicator
+            Text(
+              _username != null ? _username! : "Loading...",
+              style: const TextStyle(fontSize: 20),
             ),
             const SizedBox(height: 10),
 
@@ -54,7 +74,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.inversePrimary,
                     fontSize: 20,
-                      fontWeight: FontWeight.bold
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 onTap: () {
@@ -84,7 +104,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                onTap: logout
+                onTap: logout,
               ),
             )
           ],

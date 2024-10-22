@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../components/text_field.dart';
 import 'ChatBubble.dart';
 
 class ChatPage extends StatefulWidget {
@@ -46,8 +47,16 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text('Chat with ${widget.peerName}'),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          'Chat with ${widget.peerName}',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
+        ),
       ),
       body: Column(
         children: <Widget>[
@@ -100,18 +109,14 @@ class _ChatPageState extends State<ChatPage> {
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: TextField(
+                  child: MyTextField(
                     controller: _messageController,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                    ),
+                    hintText: 'Send a message',
+                    obscureText: false,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.send),
+                  icon: Icon(Icons.send, color: Theme.of(context).colorScheme.inversePrimary,),
                   onPressed: _sendMessage,
                 ),
               ],

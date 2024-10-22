@@ -9,12 +9,13 @@ class RewardsPage extends StatefulWidget {
 
 class _RewardsPageState extends State<RewardsPage> {
   int currentPoints = 0; // Points are now loaded from Firestore
-  List<Map<String, dynamic>> availableVouchers = []; // Store vouchers with their status
+  List<Map<String, dynamic>> availableVouchers =
+      []; // Store vouchers with their status
 
   @override
   void initState() {
     super.initState();
-    _loadVouchers();// Load vouchers when page loads
+    _loadVouchers(); // Load vouchers when page loads
     _loadCurrentPoints();
   }
 
@@ -58,7 +59,8 @@ class _RewardsPageState extends State<RewardsPage> {
           .get();
 
       setState(() {
-        currentPoints = userDoc.data()?['points'] ?? 0; // Load points or default to 0
+        currentPoints =
+            userDoc.data()?['points'] ?? 0; // Load points or default to 0
       });
     }
   }
@@ -85,52 +87,80 @@ class _RewardsPageState extends State<RewardsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text("Rewards"),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          "Rewards",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
+        ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // Display user's current points
-            Text(
-              'Your Points: $currentPoints', // Accessing currentPoints from widget
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 30),
-
-            // Display vouchers
-            if (availableVouchers.isNotEmpty) ...[
-              Expanded(
-                child: ListView.builder(
-                  itemCount: availableVouchers.length,
-                  itemBuilder: (context, index) {
-                    var voucher = availableVouchers[index];
-                    return ListTile(
-                      title: Text(voucher['title']),
-                      subtitle: Text(voucher['isRedeemed'] ? 'Redeemed' : 'Not Redeemed'),
-                      trailing: !voucher['isRedeemed']
-                          ? ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green, // Button background color
-                          foregroundColor: Colors.white, // Button text color
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Padding
-                          textStyle: const TextStyle(fontSize: 16), // Font size
-                        ),
-                        onPressed: () {
-                          _redeemVoucher(voucher['id']);
-                        },
-                        child: const Text('Redeem'),
-                      )
-                          : null,
-                    );
-                  },
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              // Display user's current points
+              Text(
+                'Your Points: $currentPoints',
+                // Accessing currentPoints from widget
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontSize: 20,
                 ),
               ),
-            ] else ...[
-              Text("No vouchers available. Keep studying to earn rewards!")
+              const SizedBox(height: 30),
+
+              // Display vouchers
+              if (availableVouchers.isNotEmpty) ...[
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: availableVouchers.length,
+                    itemBuilder: (context, index) {
+                      var voucher = availableVouchers[index];
+                      return ListTile(
+                        title: Text(voucher['title']),
+                        subtitle: Text(voucher['isRedeemed']
+                            ? 'Redeemed'
+                            : 'Not Redeemed'),
+                        trailing: !voucher['isRedeemed']
+                            ? ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  // Button background color
+                                  foregroundColor: Colors.white,
+                                  // Button text color
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 12),
+                                  // Padding
+                                  textStyle: const TextStyle(
+                                      fontSize: 16), // Font size
+                                ),
+                                onPressed: () {
+                                  _redeemVoucher(voucher['id']);
+                                },
+                                child: const Text('Redeem'),
+                              )
+                            : null,
+                      );
+                    },
+                  ),
+                ),
+              ] else ...[
+                Text(
+                  "No vouchers available. Keep studying to earn rewards!",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    fontSize: 20,
+                  ),
+                )
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

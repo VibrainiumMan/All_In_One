@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:all_in_one/pages/main_pages/message_pages/FriendManagement.dart';
-import 'package:all_in_one/pages/main_pages/message_pages/GroupManagement.dart';
+import 'package:all_in_one/pages/main_pages/message_pages/friend_management.dart';
+import 'package:all_in_one/pages/main_pages/message_pages/group_management.dart';
 import 'package:all_in_one/pages/main_pages/message_pages/ChatPage.dart';
-import 'package:all_in_one/pages/main_pages/message_pages/GroupChatPage.dart';
+import 'package:all_in_one/pages/main_pages/message_pages/group_chat_page.dart';
+
+import '../../../components/text_field.dart';
 
 class FriendsPage extends StatefulWidget {
   const FriendsPage({Key? key}) : super(key: key);
@@ -32,20 +34,31 @@ class _FriendsPageState extends State<FriendsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.background,
           title: const Text('Add Friend by Email'),
-          content: TextField(
+          content: MyTextField(
             controller: emailController,
-            decoration: const InputDecoration(hintText: "Enter email"),
+            hintText: 'Email',
+            obscureText: false,
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Add'),
+              child: const Text(
+                'Add',
+                style: TextStyle(
+                  color: Colors.green,
+                ),
+              ),
               onPressed: () {
                 friendManagement
                     .addFriendByEmail(emailController.text.trim(), context, () {
@@ -63,15 +76,29 @@ class _FriendsPageState extends State<FriendsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text('My Friends'),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          'My Friends',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: Icon(
+              Icons.search,
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
             onPressed: () => _showEmailDialog(context),
           ),
           IconButton(
-            icon: const Icon(Icons.group_add),
+            icon: Icon(
+              Icons.group_add,
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
             onPressed: () =>
                 groupManagement.createGroupDialog(context, groupNameController),
           ),
@@ -91,7 +118,7 @@ class _FriendsPageState extends State<FriendsPage> {
 
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: const Color(0xFF8CAEB7),
                   child: isGroup
                       ? const Icon(Icons.group)
                       : const Icon(Icons.person),

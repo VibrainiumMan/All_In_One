@@ -1,4 +1,3 @@
-// progress_indicator_widget.dart
 import 'package:flutter/material.dart';
 
 class ProgressIndicatorWidget extends StatelessWidget {

@@ -6,6 +6,8 @@ import 'package:all_in_one/pages/auth_pages/edit_note_page.dart';
 import 'package:all_in_one/pages/auth_pages/note_detail_page.dart';
 import 'package:all_in_one/pages/auth_pages/add_note_page.dart';
 import 'package:zefyrka/zefyrka.dart';
+import '../../components/my_floating_action_button.dart';
+import '../../components/text_field.dart';
 
 class ViewNotesPage extends StatefulWidget {
   final FirebaseFirestore firestore;
@@ -15,8 +17,7 @@ class ViewNotesPage extends StatefulWidget {
     Key? key,
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
-  }) :
-        firestore = firestore ?? FirebaseFirestore.instance,
+  })  : firestore = firestore ?? FirebaseFirestore.instance,
         auth = auth ?? FirebaseAuth.instance,
         super(key: key);
 
@@ -42,8 +43,16 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
         return true;
       },
       child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
-          title: Text(selectedFolderName ?? "My Notes"),
+          backgroundColor: const Color(0xFF8CAEB7),
+          title: Text(
+            selectedFolderName ?? "My Notes",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+              fontSize: 25,
+            ),
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.create_new_folder),
@@ -95,7 +104,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                             borderRadius: BorderRadius.circular(8),
                             color: selectedFolderId == folder.id
                                 ? Colors.blue
-                                : Colors.grey[300],
+                                : Colors.grey[500],
                           ),
                           child: Column(
                             children: [
@@ -107,13 +116,16 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.edit, color: Colors.white),
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.white),
                                     onPressed: () {
-                                      _renameFolderDialog(context, folder.id, folderName);
+                                      _renameFolderDialog(
+                                          context, folder.id, folderName);
                                     },
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
                                     onPressed: () {
                                       _confirmDeleteFolder(context, folder.id);
                                     },
@@ -134,14 +146,16 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
               child: StreamBuilder<QuerySnapshot>(
                 stream: selectedFolderId != null
                     ? widget.firestore
-                    .collection('notes')
-                    .where('owner', isEqualTo: widget.auth.currentUser?.email)
-                    .where('folderId', isEqualTo: selectedFolderId)
-                    .snapshots()
+                        .collection('notes')
+                        .where('owner',
+                            isEqualTo: widget.auth.currentUser?.email)
+                        .where('folderId', isEqualTo: selectedFolderId)
+                        .snapshots()
                     : widget.firestore
-                    .collection('notes')
-                    .where('owner', isEqualTo: widget.auth.currentUser?.email)
-                    .snapshots(),
+                        .collection('notes')
+                        .where('owner',
+                            isEqualTo: widget.auth.currentUser?.email)
+                        .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -165,6 +179,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                           : null;
 
                       return Card(
+                        color: Colors.grey.shade700,
                         margin: const EdgeInsets.all(10),
                         child: ListTile(
                           title: Text(title),
@@ -180,26 +195,30 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                               ),
                               const SizedBox(width: 10),
                               IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.blue),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => EditNotePage(noteDoc.id, note),
+                                      builder: (context) =>
+                                          EditNotePage(noteDoc.id, note),
                                     ),
                                   );
                                 },
                               ),
                               const SizedBox(width: 10),
                               IconButton(
-                                icon: const Icon(Icons.add, color: Colors.green),
+                                icon:
+                                    const Icon(Icons.add, color: Colors.green),
                                 onPressed: () {
                                   _moveNoteToFolder(context, noteDoc.id);
                                 },
                               ),
                               const SizedBox(width: 10),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () {
                                   _confirmDelete(context, noteDoc.id);
                                 },
@@ -210,7 +229,8 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => NoteDetailPage(note: note),
+                                builder: (context) =>
+                                    NoteDetailPage(note: note),
                               ),
                             );
                           },
@@ -223,15 +243,17 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: MyFloatingActionButton(
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AddNotePage()),
             );
           },
-          child: const Icon(Icons.add),
-          tooltip: 'Add Note',
+          child: Icon(
+            Icons.add,
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
         ),
       ),
     );
@@ -260,24 +282,39 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Create Folder"),
-          content: TextField(
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            "Create Folder",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
+          content: MyTextField(
             controller: folderController,
-            decoration: const InputDecoration(hintText: "Folder Name"),
+            hintText: "Folder Name",
+            obscureText: false,
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text("Cancel"),
+              child: Text(
+                "Cancel",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {
                 _createFolder(folderController.text);
                 Navigator.of(context).pop();
               },
-              child: const Text("Create"),
+              child: const Text(
+                "Create",
+                style: TextStyle(color: Colors.green),
+              ),
             ),
           ],
         );
@@ -315,12 +352,23 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
 
             var folders = snapshot.data!.docs;
             return AlertDialog(
-              title: const Text("Move to Folder"),
+              backgroundColor: Theme.of(context).colorScheme.background,
+              title: Text(
+                "Move to Folder",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: folders.map((folder) {
                   return ListTile(
-                    title: Text(folder['folderName']),
+                    title: Text(
+                      folder['folderName'],
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                      ),
+                    ),
                     onTap: () {
                       _moveNoteToSelectedFolder(noteId, folder.id);
                       Navigator.of(context).pop();
@@ -346,30 +394,49 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
     );
   }
 
-  void _renameFolderDialog(BuildContext context, String folderId, String currentName) {
-    TextEditingController folderController = TextEditingController(text: currentName);
+  void _renameFolderDialog(
+      BuildContext context, String folderId, String currentName) {
+    TextEditingController folderController =
+        TextEditingController(text: currentName);
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Rename Folder"),
-          content: TextField(
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            "Rename Folder",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
+          content: MyTextField(
             controller: folderController,
-            decoration: const InputDecoration(hintText: "New Folder Name"),
+            hintText: "Name",
+            obscureText: false,
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text("Cancel"),
+              child: Text(
+                "Cancel",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {
                 _renameFolder(folderId, folderController.text);
                 Navigator.of(context).pop();
               },
-              child: const Text("Rename"),
+              child: const Text(
+                "Rename",
+                style: TextStyle(
+                  color: Colors.green,
+                ),
+              ),
             ),
           ],
         );
@@ -393,21 +460,38 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Delete Folder"),
-          content: const Text("Are you sure you want to delete this folder and all its notes?"),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            "Delete Folder",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
+          content: const Text(
+              "Are you sure you want to delete this folder and all its notes?"),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text("Cancel"),
+              child: Text(
+                "Cancel",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {
                 _deleteFolderAndNotes(folderId);
                 Navigator.of(context).pop();
               },
-              child: const Text("Delete"),
+              child: const Text(
+                "Delete",
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
             ),
           ],
         );
@@ -428,7 +512,8 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
     await widget.firestore.collection('folders').doc(folderId).delete();
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Folder and its notes deleted successfully")),
+      const SnackBar(
+          content: Text("Folder and its notes deleted successfully")),
     );
   }
 
@@ -437,21 +522,42 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Delete Note"),
-          content: const Text("Are you sure you want to delete this note?"),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            "Delete Note",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
+          content: Text(
+            "Are you sure you want to delete this note?",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text("Cancel"),
+              child: Text(
+                "Cancel",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {
                 _deleteNote(noteId);
                 Navigator.of(context).pop();
               },
-              child: const Text("Delete"),
+              child: const Text(
+                "Delete",
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
             ),
           ],
         );

@@ -23,14 +23,20 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
   Future<void> showAddFlashCardDialog(BuildContext context) async {
     final TextEditingController frontTextController = TextEditingController();
     final TextEditingController backTextController = TextEditingController();
-    final TextEditingController examDateController = TextEditingController(); // 控制器用于输入日期
+    final TextEditingController examDateController =
+        TextEditingController(); // 控制器用于输入日期
 
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Theme.of(context).colorScheme.secondary,
-          title: const Text('Add FlashCard'),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            'Add FlashCard',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -39,12 +45,13 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
                 obscureText: false,
                 controller: frontTextController,
               ),
-              const SizedBox(height: 5.0),
+              const SizedBox(height: 10.0),
               MyTextField(
                 controller: backTextController,
                 obscureText: false,
                 hintText: "Answer",
               ),
+              const SizedBox(height: 10.0),
               MyTextField(
                 controller: examDateController,
                 obscureText: false,
@@ -53,19 +60,31 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
             ],
           ),
           actions: [
-            MyButton(
-              onTap: () {
+            TextButton(
+              child: Text(
+                "Cancel",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
+              onPressed: () {
                 Navigator.of(context).pop();
               },
-              text: "Cancel",
             ),
             const SizedBox(height: 5.0),
-            MyButton(
-              onTap: () {
+            TextButton(
+              child: Text(
+                "Save",
+                style: TextStyle(
+                  color: Colors.green,
+                ),
+              ),
+              onPressed: () {
                 if (frontTextController.text.isNotEmpty &&
                     backTextController.text.isNotEmpty &&
                     examDateController.text.isNotEmpty) {
-                  DateTime? examDate = DateTime.tryParse(examDateController.text);
+                  DateTime? examDate =
+                      DateTime.tryParse(examDateController.text);
                   if (examDate != null) {
                     flashCardManager.addFlashCardToSet(
                       widget.deckName,
@@ -78,7 +97,6 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
                   }
                 }
               },
-              text: "Add",
             ),
           ],
         );
@@ -91,10 +109,20 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text('${widget.deckName} Deck'),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          '${widget.deckName} Deck',
+          style: TextStyle(
+            fontSize: 25,
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.quiz),
+            icon: Icon(
+              Icons.quiz,
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
             onPressed: () {
               Navigator.push(
                 context,
@@ -117,18 +145,22 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
           }
 
           final flashCards = snapshot.data!.docs.map((doc) {
-            return FlashCard(
-              frontText: doc['frontText'],
-              backText: doc['backText'],
-              onDelete: () {
-                flashCardManager.deleteFlashCard(widget.deckName, doc.id);
-              },
-              priority: doc['priority'],
-              deckName: widget.deckName,
-              cardId: doc.id,
-              examDate: (doc['examDate'] as Timestamp).toDate(),
+            return Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: FlashCard(
+                frontText: doc['frontText'],
+                backText: doc['backText'],
+                onDelete: () {
+                  flashCardManager.deleteFlashCard(widget.deckName, doc.id);
+                },
+                priority: doc['priority'],
+                deckName: widget.deckName,
+                cardId: doc.id,
+                examDate: (doc['examDate'] as Timestamp).toDate(),
+              ),
             );
           }).toList();
+          const SizedBox(height: 5,);
 
           return ListView.builder(
             itemCount: flashCards.length,
@@ -142,7 +174,10 @@ class _FlashcardDeckPageState extends State<FlashcardDeckPage> {
         onPressed: () {
           showAddFlashCardDialog(context);
         },
-        child: const Icon(Icons.add),
+        child: Icon(
+          Icons.add,
+          color: Theme.of(context).colorScheme.inversePrimary,
+        ),
       ),
     );
   }

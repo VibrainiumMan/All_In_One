@@ -16,26 +16,37 @@ class _SettingsPageState extends State<SettingsPage> {
     final themeNotifer = Provider.of<ThemeNotifer>(context);
     bool isSwitched = themeNotifer.isDark;
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+        backgroundColor: const Color(0xFF8CAEB7),
         title: Text(
           "Settings",
           style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
         ),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Change to dark mode"),
-                const SizedBox(width: 20.0),
-                MySwitch(value: isSwitched, onChanged: (value){
-                  themeNotifer.toggleThemes(value);
-                }),
-              ],
-            ),
-          ],
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Center(
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Change to dark mode",
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary, fontSize: 20),
+                  ),
+                  const SizedBox(width: 100.0),
+                  MySwitch(
+                      value: isSwitched,
+                      onChanged: (value) {
+                        themeNotifer.toggleThemes(value);
+                      }),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

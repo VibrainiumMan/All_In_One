@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../../components/text_field.dart';
 
 class GroupManagement {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -12,20 +13,37 @@ class GroupManagement {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Create New Group'),
-          content: TextField(
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            'Create New Group',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
+          content: MyTextField(
             controller: groupNameController,
-            decoration: const InputDecoration(hintText: "Enter group name"),
+            hintText: 'Name',
+            obscureText: false,
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Create'),
+              child: const Text(
+                'Create',
+                style: TextStyle(
+                  color: Colors.green,
+                ),
+              ),
               onPressed: () {
                 createGroup(groupNameController.text);
                 Navigator.of(context).pop();
@@ -69,21 +87,36 @@ class GroupManagement {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Leave Group'),
-          content:
-              Text('Are you sure you want to leave the group "$groupName"?'),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            'Leave Group',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to leave the group "$groupName"?',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: const Text('Leave'),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () {
                 leaveGroup(groupId);
                 Navigator.of(context).pop();
               },
+              child: Text('Leave'),
             ),
           ],
         );
@@ -116,20 +149,22 @@ class GroupManagement {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Set Group Remark'),
-          content: TextField(
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text('Set Group Remark', style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary,),),
+          content: MyTextField(
             controller: remarkController,
-            decoration: const InputDecoration(hintText: "Enter group remark"),
+            hintText: 'Enter group remark',
+            obscureText: false,
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text('Cancel', style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary,),),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Save'),
+              child: const Text('Save', style: TextStyle(color: Colors.green),),
               onPressed: () {
                 saveGroupRemark(groupId, remarkController.text);
                 Navigator.of(context).pop();

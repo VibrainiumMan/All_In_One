@@ -57,5 +57,7 @@ Make sure have these installed:
 - shared_preferences
 - vibration
 - http
+- zefyrka
+- flutter_quill
 
 

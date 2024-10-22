@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,7 +8,17 @@ import 'package:all_in_one/pages/auth_pages/add_note_page.dart';
 import 'package:zefyrka/zefyrka.dart';
 
 class ViewNotesPage extends StatefulWidget {
-  const ViewNotesPage({Key? key}) : super(key: key);
+  final FirebaseFirestore firestore;
+  final FirebaseAuth auth;
+
+  ViewNotesPage({
+    Key? key,
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  }) :
+        firestore = firestore ?? FirebaseFirestore.instance,
+        auth = auth ?? FirebaseAuth.instance,
+        super(key: key);
 
   @override
   _ViewNotesPageState createState() => _ViewNotesPageState();
@@ -48,9 +57,9 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
           children: [
             // Display folders for organizing notes
             StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
+              stream: widget.firestore
                   .collection('folders')
-                  .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                  .where('userId', isEqualTo: widget.auth.currentUser?.uid)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -124,14 +133,14 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: selectedFolderId != null
-                    ? FirebaseFirestore.instance
+                    ? widget.firestore
                     .collection('notes')
-                    .where('owner', isEqualTo: FirebaseAuth.instance.currentUser?.email)
+                    .where('owner', isEqualTo: widget.auth.currentUser?.email)
                     .where('folderId', isEqualTo: selectedFolderId)
                     .snapshots()
-                    : FirebaseFirestore.instance
+                    : widget.firestore
                     .collection('notes')
-                    .where('owner', isEqualTo: FirebaseAuth.instance.currentUser?.email)
+                    .where('owner', isEqualTo: widget.auth.currentUser?.email)
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -209,7 +218,6 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                       );
                     },
                   );
-
                 },
               ),
             ),
@@ -279,9 +287,9 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
 
   void _createFolder(String folderName) async {
     if (folderName.isNotEmpty) {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
+      final userId = widget.auth.currentUser?.uid;
       if (userId != null) {
-        await FirebaseFirestore.instance.collection('folders').add({
+        await widget.firestore.collection('folders').add({
           'folderName': folderName,
           'userId': userId,
           'createdAt': Timestamp.now(),
@@ -298,9 +306,9 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
       context: context,
       builder: (BuildContext context) {
         return StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
+          stream: widget.firestore
               .collection('folders')
-              .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+              .where('userId', isEqualTo: widget.auth.currentUser?.uid)
               .snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) return const CircularProgressIndicator();
@@ -328,7 +336,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
   }
 
   void _moveNoteToSelectedFolder(String noteId, String folderId) async {
-    await FirebaseFirestore.instance
+    await widget.firestore
         .collection('notes')
         .doc(noteId)
         .update({'folderId': folderId});
@@ -371,7 +379,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
 
   void _renameFolder(String folderId, String newName) async {
     if (newName.isNotEmpty) {
-      await FirebaseFirestore.instance.collection('folders').doc(folderId).update({
+      await widget.firestore.collection('folders').doc(folderId).update({
         'folderName': newName,
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -408,7 +416,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
   }
 
   void _deleteFolderAndNotes(String folderId) async {
-    var notes = await FirebaseFirestore.instance
+    var notes = await widget.firestore
         .collection('notes')
         .where('folderId', isEqualTo: folderId)
         .get();
@@ -417,7 +425,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
       await note.reference.delete();
     }
 
-    await FirebaseFirestore.instance.collection('folders').doc(folderId).delete();
+    await widget.firestore.collection('folders').doc(folderId).delete();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Folder and its notes deleted successfully")),
@@ -453,7 +461,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
 
   Future<void> _deleteNote(String noteId) async {
     try {
-      await FirebaseFirestore.instance.collection('notes').doc(noteId).delete();
+      await widget.firestore.collection('notes').doc(noteId).delete();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Note deleted successfully")),
       );

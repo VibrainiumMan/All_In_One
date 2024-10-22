@@ -20,7 +20,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
               CircularProgressIndicator(
                 value: progress,
                 strokeWidth: 7,
-                backgroundColor: Colors.grey,
+                backgroundColor: const Color(0xFF8CAEB7),
                 valueColor: AlwaysStoppedAnimation<Color>(
                     Theme.of(context).colorScheme.primary),
               ),

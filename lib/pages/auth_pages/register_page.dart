@@ -78,21 +78,14 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.person,
-                size: 80,
-                color: Theme.of(context).colorScheme.inversePrimary,
-              ),
-
-              const SizedBox(height: 40),
-
+              Image.asset('lib/images/All-In-One-Logo.png'),
               MyTextField(
                 hintText: "Username",
                 obscureText: false,
                 controller: usernameController,
               ),
 
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
 
               //Email field
               MyTextField(
@@ -101,7 +94,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: emailController,
               ),
 
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
 
               //Password field
               MyTextField(
@@ -110,7 +103,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: passwordController,
               ),
 
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
 
               //Confirm Password
               MyTextField(
@@ -142,6 +135,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: const Text(
                       "Login Here ",
                       style: TextStyle(
+                        color: const Color(0xFF8CAEB7),
                         fontWeight: FontWeight.bold,
                       ),
                     ),

@@ -133,20 +133,44 @@ class _TaskPageState extends State<TaskPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(task.title),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            task.title,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(task.type == 'Weekly'
-                  ? "Days: ${task.days?.join(', ') ?? 'No days selected'}"
-                  : "Date: ${task.date ?? 'No date selected'}"),
-              SizedBox(height: 10),
-              Text("Description: ${task.description}"),
+              // Show task type and details (days or date)
+              Text(
+                task.type == 'Weekly'
+                    ? "Days: ${task.days?.join(', ') ?? 'No days selected'}"
+                    : "Date: ${task.date ?? 'No date selected'}",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Show task description
+              Text(
+                "Description: ${task.description}",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
             ],
           ),
           actions: [
+            // Close button
             TextButton(
-              child: Text("Close"),
+              child: Text(
+                "Close",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -162,28 +186,31 @@ class _TaskPageState extends State<TaskPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+        backgroundColor: const Color(0xFF8CAEB7),
         title: Text(
           "To Do",
-          style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
         ),
         actions: [
-          IconButton(
-            onPressed: () => {},
-            icon: Icon(Icons.calendar_today_rounded),
-          ),
           IconButton(
             onPressed: () async {
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => AddingTaskPage(),
+                  builder: (_) => const AddingTaskPage(),
                 ),
               );
               if (result != null && result is Task) {
                 _addTask(result);
               }
             },
-            icon: Icon(Icons.add),
+            icon: Icon(
+              Icons.add,
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
           )
         ],
       ),
@@ -198,54 +225,62 @@ class _TaskPageState extends State<TaskPage> {
   }
 
   Widget _buildTaskSection(String title, List<Task> tasks) {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.all(10),
-            child: Text(title),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.all(10),
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 24), // Increase font size
           ),
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).colorScheme.inversePrimary,
-              ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.secondary,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.inversePrimary,
             ),
-            margin: const EdgeInsets.all(10),
-            width: 400,
-            child: tasks.isNotEmpty
-                ? Column(
-              children: tasks.map((task) {
-                return ListTile(
-                  leading: Checkbox(
-                    value: task.isCompleted,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        task.isCompleted = value!;
-                        _updateTaskCompletion(task, value);
-                      });
-                    },
-                  ),
-                  title: Text(task.title),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.black),
-                    onPressed: () {
-                      _deleteTask(task);
-                    },
-                  ),
-                  onTap: () {
-                    _showTaskDetails(context, task);
+          ),
+          margin: const EdgeInsets.all(10),
+          width: 400,
+          child: tasks.isNotEmpty
+              ? Column(
+            children: tasks.map((task) {
+              return ListTile(
+                leading: Checkbox(
+                  value: task.isCompleted,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      task.isCompleted = value!;
+                      _updateTaskCompletion(task, value);
+                    });
                   },
-                );
-              }).toList(),
-            )
-                : const Center(
-              child: Text("Add Task"),
+                ),
+                title: Text(task.title),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                  onPressed: () {
+                    _deleteTask(task);
+                  },
+                ),
+                onTap: () {
+                  _showTaskDetails(context, task);
+                },
+              );
+            }).toList(),
+          )
+              : const Center(
+            child: Text(
+              "Add Task",
+              style: TextStyle(fontSize: 20),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
+
+

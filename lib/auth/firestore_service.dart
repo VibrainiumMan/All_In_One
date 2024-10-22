@@ -4,6 +4,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 class FirestoreService {
   final User? user = FirebaseAuth.instance.currentUser;
 
+  Future<String?> getUsername() async {
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users') // Use the same collection name
+          .doc(user!.uid) // Using uid instead of email
+          .get();
+
+      // Cast the data to a Map<String, dynamic> before accessing it
+      final data = userDoc.data() as Map<String, dynamic>?;
+
+      // Assuming the username is stored under a field called 'name'
+      return data?['name'] as String?;
+    }
+    return null;
+  }
+
   Future<void> createFlashCard(String setName) async {
     if (user != null) {
       DocumentReference setRef = FirebaseFirestore.instance

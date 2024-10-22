@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../components/my_elevated_icon_button.dart';
+import '../../components/text_field.dart';
 
 class Task {
   final String title;
@@ -92,12 +94,15 @@ class _AddingTaskPageState extends State<AddingTaskPage> {
         description: description,
       );
 
-      await FirebaseFirestore.instance.collection('tasks').add(newTask.toMap(user.email!));
+      await FirebaseFirestore.instance
+          .collection('tasks')
+          .add(newTask.toMap(user.email!));
 
       Navigator.pop(context, newTask);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: You must be logged in to save a task.')),
+        const SnackBar(
+            content: Text('Error: You must be logged in to save a task.')),
       );
     }
   }
@@ -105,27 +110,39 @@ class _AddingTaskPageState extends State<AddingTaskPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Add Task')),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          'Add Task',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
+        ),
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Write Title
             Container(
-              padding: EdgeInsets.all(10),
-              child: TextField(
+              padding: const EdgeInsets.all(10),
+              child: MyTextField(
                 controller: taskController1,
-                decoration: InputDecoration(labelText: "Title"),
+                hintText: "Title",
+                obscureText: false,
               ),
             ),
 
             // Select Type: Daily, Weekly, Monthly
             Container(
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               child: DropdownButtonFormField<String>(
                 value: selectedType.isEmpty ? null : selectedType,
-                decoration: InputDecoration(labelText: "Choose Type"),
-                items: <String>['Daily', 'Weekly', 'Monthly'].map((String value) {
+                decoration: const InputDecoration(labelText: "Choose Type"),
+                items:
+                <String>['Daily', 'Weekly', 'Monthly'].map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value),
@@ -144,11 +161,11 @@ class _AddingTaskPageState extends State<AddingTaskPage> {
             // Weekly Task: Select multiple days
             if (selectedType == 'Weekly')
               Container(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Select Days"),
+                    const Text("Select Days"),
                     Wrap(
                       spacing: 8.0,
                       runSpacing: 4.0,
@@ -169,11 +186,11 @@ class _AddingTaskPageState extends State<AddingTaskPage> {
             // Choose Date (for Monthly task)
             if (selectedType == 'Monthly')
               Container(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: InkWell(
                   onTap: () => _selectDate(context),
                   child: InputDecorator(
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Select Date',
                     ),
                     child: Text(
@@ -185,23 +202,28 @@ class _AddingTaskPageState extends State<AddingTaskPage> {
                 ),
               ),
 
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // Write Description
             Container(
-              padding: EdgeInsets.all(10),
-              child: TextField(
+              padding: const EdgeInsets.all(10),
+              child: MyTextField(
                 controller: taskController4,
-                decoration: InputDecoration(labelText: "Description"),
+                hintText: "Description",
+                obscureText: false,
               ),
             ),
 
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // Save Button: Save and go back
-            ElevatedButton(
+            MyElevatedIconButton(
               onPressed: _saveTask,
-              child: Text("Save Task"),
+              icon: Icon(
+                Icons.check,
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
+              label: "Save",
             ),
           ],
         ),

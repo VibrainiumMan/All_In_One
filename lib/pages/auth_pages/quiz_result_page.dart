@@ -1,5 +1,6 @@
-import 'package:all_in_one/pages/auth_pages/flash_card_deck_page.dart';
 import 'package:flutter/material.dart';
+
+import '../../components/my_elevated_button.dart';
 
 class QuizResultPage extends StatelessWidget {
   final int correctAnswers;
@@ -16,6 +17,7 @@ class QuizResultPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+        backgroundColor: const Color(0xFF8CAEB7),
         title: const Text('Quiz Result'),
         automaticallyImplyLeading: false,
       ),
@@ -27,23 +29,17 @@ class QuizResultPage extends StatelessWidget {
             children: [
               Text(
                 'You got $correctAnswers out of $totalQuestions correct!',
-                style: const TextStyle(fontSize: 35),
+                style: TextStyle(fontSize: 35, color: Theme.of(context).colorScheme.inversePrimary),
               ),
               const SizedBox(height: 60),
-              ElevatedButton(
+              MyElevatedButton(
+                text: "Back to Home",
                 onPressed: () {
                   Navigator.popUntil(
                     context,
                         (route) => route.isFirst,
                   ); // Go back to the previous screen
                 },
-                child: const Text(
-                  'Back to Deck',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
               ),
             ],
           ),

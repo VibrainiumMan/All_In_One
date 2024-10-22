@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../components/text_field.dart';
+
 class FriendManagement {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -105,21 +107,31 @@ class FriendManagement {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Friend'),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            'Delete Friend',
+            style:
+                TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
+          ),
           content: Text(
-              'Are you sure you want to remove $friendName from your friends list?'),
+            'Are you sure you want to remove $friendName from your friends list?',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.inversePrimary),
+              child: const Text('Cancel', ),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: const Text('Delete'),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () {
                 removeFriend(friendId);
                 Navigator.of(context).pop();
               },
+              child: const Text('Delete'),
             ),
           ],
         );
@@ -154,19 +166,23 @@ class FriendManagement {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Set Friend Remark'),
-          content: TextField(
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text('Set Friend Remark', style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),),
+          content: MyTextField(
             controller: remarkController,
-            decoration: const InputDecoration(hintText: "Enter remark name"),
+            hintText: 'Enter friend remark',
+            obscureText: false,
           ),
           actions: <Widget>[
             TextButton(
+              style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.background),
               child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.green),
               child: const Text('Save'),
               onPressed: () {
                 saveRemark(id, remarkController.text).then((_) {

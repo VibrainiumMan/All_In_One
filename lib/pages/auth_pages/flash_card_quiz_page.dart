@@ -1,7 +1,7 @@
-
 import 'package:all_in_one/pages/auth_pages/quiz_result_page.dart';
 import 'package:flutter/material.dart';
 import '../../auth/firestore_service.dart';
+import '../../components/my_elevated_button.dart';
 import '../../components/text_field.dart';
 
 class FlashCardQuizPage extends StatefulWidget {
@@ -28,7 +28,7 @@ class _FlashCardQuizPageState extends State<FlashCardQuizPage> {
 
   Future<void> generateQuiz() async {
     List<Map<String, dynamic>> cards =
-    await flashCardManager.getRandomFlashCards(widget.deckName, 10);
+        await flashCardManager.getRandomFlashCards(widget.deckName, 10);
     setState(() {
       flashCards = cards;
     });
@@ -44,7 +44,8 @@ class _FlashCardQuizPageState extends State<FlashCardQuizPage> {
 
     print('Set Name: $setName');
     print('Card ID: $cardId');
-    print('Current Priority: ${currentFlashCard['priority']}, Type: ${currentFlashCard['priority'].runtimeType}');
+    print(
+        'Current Priority: ${currentFlashCard['priority']}, Type: ${currentFlashCard['priority'].runtimeType}');
     print('Current flashcard: $currentFlashCard');
     print('Answer text: $answerText');
     print('Back text: $backText');
@@ -90,8 +91,19 @@ class _FlashCardQuizPageState extends State<FlashCardQuizPage> {
   Widget build(BuildContext context) {
     if (flashCards.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: Text('Quiz - ${widget.deckName}')),
-        body: const Center(child: CircularProgressIndicator()),
+        backgroundColor: Theme.of(context).colorScheme.background,
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF8CAEB7),
+          title: Text(
+            'Quiz - ${widget.deckName}',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
@@ -100,7 +112,13 @@ class _FlashCardQuizPageState extends State<FlashCardQuizPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text('Quiz - ${widget.deckName}'),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          'Quiz - ${widget.deckName}',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -109,12 +127,17 @@ class _FlashCardQuizPageState extends State<FlashCardQuizPage> {
           children: [
             Text(
               'Question ${currentQuestionIndex + 1}/${flashCards.length}',
-              style: const TextStyle(fontSize: 50),
+              style: TextStyle(
+                fontSize: 50,
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 40),
             Text(
               currentFlashCard['frontText'],
-              style: const TextStyle(fontSize: 40),
+              style: TextStyle(
+                  fontSize: 40,
+                  color: Theme.of(context).colorScheme.inversePrimary),
             ),
             const SizedBox(height: 20),
             MyTextField(
@@ -122,8 +145,16 @@ class _FlashCardQuizPageState extends State<FlashCardQuizPage> {
               obscureText: false,
               hintText: "Enter Answer",
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.secondary,
+                backgroundColor: Theme.of(context).brightness ==
+                        Brightness.light
+                    ? Colors.grey[
+                        300] // Slightly darker button background in light mode
+                    : Theme.of(context).colorScheme.primary,
+              ),
               onPressed: () {
                 checkAnswer();
                 if (currentQuestionIndex < flashCards.length - 1) {
@@ -134,13 +165,14 @@ class _FlashCardQuizPageState extends State<FlashCardQuizPage> {
                   showResults(context);
                 }
               },
-              child: Text(currentQuestionIndex < flashCards.length - 1
-                  ? 'Next Question'
-                  : 'Finish Quiz',
+              child: Text(
+                currentQuestionIndex < flashCards.length - 1
+                    ? 'Next Question'
+                    : 'Finish Quiz',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.inversePrimary,
                 ),
               ),
             ),

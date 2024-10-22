@@ -78,20 +78,21 @@ class _DailyMotivationWidgetState extends State<DailyMotivationPage> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           'Quote of the day',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.inversePrimary,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 40),
         Card(
+          color: Theme.of(context).colorScheme.secondary,
           elevation: 8,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -100,7 +101,7 @@ class _DailyMotivationWidgetState extends State<DailyMotivationPage> {
               style: TextStyle(
                 fontSize: 24,
                 fontStyle: FontStyle.italic,
-                color: Colors.blueGrey.shade900,
+                color: Theme.of(context).colorScheme.inversePrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -112,7 +113,7 @@ class _DailyMotivationWidgetState extends State<DailyMotivationPage> {
           child: const Icon(
             Icons.refresh,
             size: 40,
-            color: Color(0xFFCA7E8D),
+            color: const Color(0xFF8CAEB7),
           ),
         ),
       ],

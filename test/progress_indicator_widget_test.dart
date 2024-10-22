@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:all_in_one/pages/main_pages/progress_indicator_widget.dart';
+import 'package:all_in_one/components/progress_indicator_widget.dart';
 
 void main() {
   group('ProgressIndicatorWidget', () {

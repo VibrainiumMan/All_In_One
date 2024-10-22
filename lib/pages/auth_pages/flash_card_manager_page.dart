@@ -2,7 +2,6 @@ import 'package:all_in_one/components/my_floating_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../auth/firestore_service.dart';
-import '../../components/my_button.dart';
 import '../../components/text_field.dart';
 import 'flash_card_deck_page.dart';
 
@@ -23,29 +22,42 @@ class _FlashCardManagerPageState extends State<FlashCardManagerPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Theme.of(context).colorScheme.secondary,
-          title: const Text('Create Flashcard Deck'),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            'Create Flashcard Deck',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
           content: MyTextField(
             controller: deckNameController,
             hintText: "Deck Name",
             obscureText: false,
           ),
           actions: [
-            MyButton(
-              onTap: () {
+            TextButton(
+              child: Text(
+                "Cancel",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
+              onPressed: () {
                 Navigator.of(context).pop();
               },
-              text: "Cancel",
             ),
-            const SizedBox(height: 5.0),
-            MyButton(
-              onTap: () {
+            const SizedBox(height: 10.0),
+            TextButton(
+              child: Text(
+                "Save",
+                style: TextStyle(color: Colors.green),
+              ),
+              onPressed: () {
                 if (deckNameController.text.isNotEmpty) {
                   deckManager.createFlashcardDeck(deckNameController.text);
                   Navigator.of(context).pop();
                 }
               },
-              text: "Save",
             ),
           ],
         );
@@ -60,21 +72,43 @@ class _FlashCardManagerPageState extends State<FlashCardManagerPage> {
       barrierDismissible: false, // User must tap a button to dismiss
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Flashcard Deck'),
-          content: const Text('Are you sure you want to delete this deck?'),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          title: Text(
+            'Delete Flashcard Deck',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to delete this deck?',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+              fontSize: 16,
+            ),
+          ),
           actions: <Widget>[
-            MyButton(
-              onTap: () {
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
+              onPressed: () {
                 Navigator.of(context).pop(); // Cancel deletion
               },
-              text: 'Cancel',
             ),
-            MyButton(
-              onTap: () {
+            TextButton(
+              child: Text(
+                'Delete',
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
+              onPressed: () {
                 deckManager.deleteFlashcardDeck(deckId);
                 Navigator.of(context).pop(); // Confirm deletion
               },
-              text: 'Delete',
             ),
           ],
         );
@@ -87,7 +121,8 @@ class _FlashCardManagerPageState extends State<FlashCardManagerPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text('FlashCard Manager'),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title:Text('FlashCard Manager', style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary,),),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: deckManager.getDecks(),
@@ -138,7 +173,7 @@ class _FlashCardManagerPageState extends State<FlashCardManagerPage> {
         onPressed: () {
           showCreateDeckDialog(context);
         },
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add, color: Theme.of(context).colorScheme.inversePrimary,),
       ),
     );
   }

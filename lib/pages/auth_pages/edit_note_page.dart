@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zefyrka/zefyrka.dart';
 import 'dart:convert';
 
+import '../../components/text_field.dart';
+
 class EditNotePage extends StatefulWidget {
   final String noteId;
   final Map<String, dynamic> note;
@@ -42,7 +44,10 @@ class _EditNotePageState extends State<EditNotePage> {
 
     if (title.isNotEmpty) {
       try {
-        await FirebaseFirestore.instance.collection('notes').doc(widget.noteId).update({
+        await FirebaseFirestore.instance
+            .collection('notes')
+            .doc(widget.noteId)
+            .update({
           'title': title,
           'content': content,
           'updatedAt': Timestamp.now(),
@@ -63,11 +68,22 @@ class _EditNotePageState extends State<EditNotePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text("Edit Note"),
+        backgroundColor: const Color(0xFF8CAEB7),
+        title: Text(
+          "Edit Note",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            fontSize: 25,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.save),
+            icon: Icon(
+              Icons.save,
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
             onPressed: _updateNote,
           ),
         ],
@@ -76,9 +92,10 @@ class _EditNotePageState extends State<EditNotePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextFormField(
+            MyTextField(
               controller: _titleController,
-              decoration: const InputDecoration(labelText: "Title"),
+              hintText: "Title",
+              obscureText: false,
             ),
             const SizedBox(height: 20),
             Expanded(

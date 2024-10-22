@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:vibration/vibration.dart'; // For vibration support
+import 'package:vibration/vibration.dart';
+
+import '../../components/my_elevated_button.dart'; // For vibration support
 
 class TimerScreen extends StatefulWidget {
   final Function showNotification;
-  final Function(int) updatePoints; // This function updates points in the homepage
+  final Function(int)
+      updatePoints; // This function updates points in the homepage
 
   TimerScreen({required this.showNotification, required this.updatePoints});
 
@@ -26,7 +29,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   Timer? _inactivityTimer;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
@@ -48,10 +51,10 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   // Initialise local notifications
   void _initializeNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings('ic_stat_access_alarms');
+        AndroidInitializationSettings('ic_stat_access_alarms');
 
     const InitializationSettings initializationSettings =
-    InitializationSettings(android: initializationSettingsAndroid);
+        InitializationSettings(android: initializationSettingsAndroid);
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
@@ -172,7 +175,8 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   void _showRunningTimerMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Timer is still active. Please end the timer before exiting.'),
+        content:
+            Text('Timer is still active. Please end the timer before exiting.'),
       ),
     );
   }
@@ -195,36 +199,41 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   }
 
   void _awardPoints() {
-    int pointsEarned = _goalTimeInMinutes ~/ 5 * 2; // Award 2 points for every 5 minutes
-    widget.updatePoints(pointsEarned); // Call the updatePoints function from the homepage
+    int pointsEarned =
+        _goalTimeInMinutes ~/ 5 * 2; // Award 2 points for every 5 minutes
+    widget.updatePoints(
+        pointsEarned); // Call the updatePoints function from the homepage
   }
-
-
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
-          title: const Text('Timer'),
+          backgroundColor: const Color(0xFF8CAEB7),
+          title: Text(
+            'Timer',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+              fontSize: 25,
+            ),
+          ),
         ),
-        backgroundColor: theme.colorScheme.background,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
                 'Study Timer',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: theme.brightness == Brightness.light
-                      ? Colors.black
-                      : Colors.white,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontSize: 40,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
@@ -251,26 +260,14 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    ElevatedButton(
+                    MyElevatedButton(
                       onPressed: _decrementTime,
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: theme.brightness == Brightness.light
-                            ? Colors.black
-                            : Colors.white,
-                        backgroundColor: theme.colorScheme.primary,
-                      ),
-                      child: const Text('-5 min'),
+                      text: '-5 min',
                     ),
                     const SizedBox(width: 20),
-                    ElevatedButton(
+                    MyElevatedButton(
                       onPressed: _incrementTime,
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: theme.brightness == Brightness.light
-                            ? Colors.black
-                            : Colors.white,
-                        backgroundColor: theme.colorScheme.primary,
-                      ),
-                      child: const Text('+5 min'),
+                      text: '+5 min',
                     ),
                   ],
                 ),
@@ -278,10 +275,9 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
               const SizedBox(height: 20),
               Text(
                 _formatTime(_remainingTimeInSeconds),
-                style: theme.textTheme.displaySmall?.copyWith(
-                  color: theme.brightness == Brightness.light
-                      ? Colors.black
-                      : Colors.white,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  fontSize: 65,
                 ),
               ),
               const SizedBox(height: 20),
@@ -294,39 +290,21 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    ElevatedButton(
+                    MyElevatedButton(
                       onPressed: _continueTimer,
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: theme.brightness == Brightness.light
-                            ? Colors.black
-                            : Colors.white,
-                        backgroundColor: theme.colorScheme.primary,
-                      ),
-                      child: const Text('Continue Timer'),
+                      text: 'Continue Timer',
                     ),
                     const SizedBox(width: 20),
-                    ElevatedButton(
+                    MyElevatedButton(
                       onPressed: _resetTimer,
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: theme.brightness == Brightness.light
-                            ? Colors.black
-                            : Colors.white,
-                        backgroundColor: theme.colorScheme.primary,
-                      ),
-                      child: const Text('Dismiss Timer'),
+                      text: 'Dismiss Timer',
                     ),
                   ],
                 ),
               ] else if (!_isPaused && !_isTimerRunning) ...[
-                ElevatedButton(
+                MyElevatedButton(
                   onPressed: _startTimer,
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: theme.brightness == Brightness.light
-                        ? Colors.black
-                        : Colors.white,
-                    backgroundColor: theme.colorScheme.primary,
-                  ),
-                  child: const Text('Start Timer'),
+                  text: 'Start Timer',
                 ),
               ],
             ],
